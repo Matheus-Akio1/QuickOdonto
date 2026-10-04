@@ -1,0 +1,39 @@
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Dependências
+node_modules/
+web/node_modules/
+
+# Build
+dist/
+build/
+web/dist/
+web/build/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Uploads e anexos locais (nunca versionar)
+uploads/
+storage/
+
+# Testes e cobertura
+coverage/
+
+# Editor / SO
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Docker
+docker-compose.override.yml
+
+# Chaves e certificados
+*.pem
+*.key

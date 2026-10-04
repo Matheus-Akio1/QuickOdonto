@@ -30,24 +30,25 @@
 
 **Arquivos vivos do projeto (criar na raiz, antes de codar):**
 
-- [ ] `tasks/todo.md` — plano da tarefa atual
-- [ ] `tasks/lessons.md` — regras aprendidas com erros (reler no início de cada sessão)
+- [x] `tasks/todo.md` — plano da tarefa atual
+- [x] `tasks/lessons.md` — regras aprendidas com erros (reler no início de cada sessão)
 
 ---
 
 ## 1. Fase 0 — Fundação
 
-- [ ] Repositório Git criado, `main` protegida, `.gitignore` com `.env`, `node_modules`, `dist`
-- [ ] `docker-compose.yml`: serviços `api`, `db` (postgres:16), `web`
-- [ ] `Dockerfile` da API e do front
-- [ ] `.env` e `.env.example` (`DB_*`, `JWT_SECRET`, `JWT_EXPIRES`, `APP_URL`, `SMTP_*`) — segredos nunca no código
-- [ ] `src/config/db.js` com pool de conexão e queries sempre parametrizadas (`$1, $2`)
-- [ ] `src/index.js` — bootstrap Express (helmet, cors, json, rotas, errorHandler)
-- [ ] `src/swagger.js` — OpenAPI agregando `./src/modules/**/*.routes.js`
-- [ ] `src/middleware/errorHandler.js` — loga interno, responde genérico (sem stack trace ao cliente)
-- [ ] `GET /health` respondendo e Swagger UI abrindo em `/api-docs`
-- [ ] ESLint + Prettier + EditorConfig nos dois projetos
-- [ ] Estrutura de pastas do monolito modular criada (`modules/`, `middleware/`, `config/`)
+- [x] Repositório Git criado, `.gitignore` com `.env`, `node_modules`, `dist`
+- [ ] Branch `main` protegida no GitHub — ação administrativa em sistema remoto; configurar em Settings → Branches e confirmar (fica para o usuário)
+- [x] `docker-compose.yml`: serviços `api`, `db` (postgres:16-alpine), `web`
+- [x] `Dockerfile` da API e do front
+- [x] `.env` e `.env.example` (`DB_*`, `JWT_SECRET`, `JWT_EXPIRES`, `APP_URL`, `SMTP_*`) — segredos nunca no código
+- [x] `src/config/db.js` com pool de conexão e queries sempre parametrizadas (`$1, $2`)
+- [x] `src/index.js` — bootstrap Express (helmet, cors, json, rotas, errorHandler)
+- [x] `src/swagger.js` — OpenAPI agregando `./src/modules/**/*.routes.js`
+- [x] `src/middleware/errorHandler.js` — loga interno, responde genérico (sem stack trace ao cliente)
+- [x] `GET /health` respondendo e Swagger UI abrindo em `/api-docs` — provado via `docker compose up` + `curl` (200 nos dois) e inspeção do spec do Swagger
+- [x] ESLint + Prettier + EditorConfig nos dois projetos — `npx eslint` e `npx prettier --check` limpos em `src/` e `web/src/`
+- [x] Estrutura de pastas do monolito modular criada (`modules/`, `middleware/`, `config/`)
 
 ---
 
