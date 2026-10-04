@@ -1,0 +1,14 @@
+{
+  "id": "session-1789080168719",
+  "startedAt": "2026-09-10T22:42:48.719Z",
+  "cwd": "/Users/matheusakio/Desktop/QuickOdonto",
+  "context": {},
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-09-10T22:49:10.651Z",
+  "duration": 381939
+}
