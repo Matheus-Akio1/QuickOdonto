@@ -7,23 +7,46 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "lint": "eslint src",
+    "lint": "eslint src tests migrations seeds knexfile.js",
     "lint:fix": "eslint src --fix",
-    "format": "prettier --write \"src/**/*.js\""
+    "format": "prettier --write \"src/**/*.js\"",
+    "migrate": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run",
+    "test": "jest --runInBand --forceExit"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.7.1",
     "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.3.0",
+    "multer": "^2.4.0",
+    "nodemailer": "^10.0.16",
+    "pdfkit": "^0.20.2",
     "pg": "^8.12.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.4",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "supertest": "^7.3.1"
+  },
+  "jest": {
+    "globalSetup": "./tests/globalSetup.js",
+    "setupFiles": [
+      "./tests/setupEnv.js"
+    ],
+    "testEnvironment": "node"
   }
 }

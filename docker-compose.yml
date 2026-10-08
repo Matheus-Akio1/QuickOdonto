@@ -16,6 +16,12 @@ services:
       timeout: 5s
       retries: 10
 
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - '8025:8025'
+
   api:
     build:
       context: .
@@ -26,10 +32,17 @@ services:
       - '3000:3000'
     volumes:
       - ./src:/app/src
+      - ./migrations:/app/migrations
+      - ./seeds:/app/seeds
+      - ./tests:/app/tests
+      - ./knexfile.js:/app/knexfile.js
+      - anexos_data:/data/anexos
       - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   web:
     build:
@@ -37,7 +50,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      VITE_API_URL: ${APP_URL_API:-http://localhost:3000}
+      API_PROXY_TARGET: http://api:3000
     ports:
       - '5173:5173'
     volumes:
@@ -48,3 +61,5 @@ services:
 
 volumes:
   db_data:
+  # Anexos clínicos já cifrados (AES-256-GCM). Entra no backup junto com o banco.
+  anexos_data:

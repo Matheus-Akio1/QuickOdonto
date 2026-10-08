@@ -6,6 +6,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY src ./src
+COPY migrations ./migrations
+COPY seeds ./seeds
+COPY knexfile.js ./
 
 EXPOSE 3000
 
