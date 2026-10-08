@@ -1,0 +1,427 @@
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 18px;
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--primary);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+.btn-danger {
+  background: var(--danger);
+}
+.btn-danger:hover:not(:disabled) {
+  background: #8f2a21;
+}
+.btn-sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+}
+.btn-icon {
+  min-width: var(--touch);
+  padding: 0;
+}
+
+/* ---------- Campos ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label,
+.field .label {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.field .hint {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.field .error {
+  font-size: 0.84rem;
+  color: var(--danger);
+  font-weight: 500;
+}
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+}
+.textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.input[aria-invalid='true'],
+.select[aria-invalid='true'],
+.textarea[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.input:disabled {
+  background: var(--neutral-soft);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+}
+
+/* ---------- Cartões, badges, tabelas ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  background: var(--neutral-soft);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge-ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.badge-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.badge-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.badge-info {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.badge-violet {
+  background: var(--violet-soft);
+  color: var(--violet);
+}
+.badge-primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+table.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tr:last-child td {
+  border-bottom: 0;
+}
+.table tbody tr.clicavel {
+  cursor: pointer;
+}
+.table tbody tr.clicavel:hover {
+  background: var(--surface-2);
+}
+.table .acoes {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- Abas ---------- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.tab {
+  min-height: var(--touch);
+  padding: 0 16px;
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab[aria-selected='true'] {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* ---------- Modal / drawer ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgb(15 32 29 / 52%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.overlay.drawer-wrap {
+  justify-content: flex-end;
+  padding: 0;
+  align-items: stretch;
+}
+.dialog {
+  background: var(--surface);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-2);
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+.dialog.wide {
+  width: min(720px, 100%);
+}
+.drawer {
+  background: var(--surface);
+  width: min(560px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-2);
+}
+.dialog-head,
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 12px;
+}
+.dialog-body,
+.drawer-body {
+  padding: 8px 24px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+.dialog-foot,
+.drawer-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Feedback ---------- */
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(380px, calc(100vw - 32px));
+}
+.toast {
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-2);
+  font-weight: 500;
+}
+.toast.erro {
+  background: var(--danger);
+}
+.toast.ok {
+  background: var(--ok);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--neutral-soft) 25%, #f6f7f3 50%, var(--neutral-soft) 75%);
+  background-size: 200% 100%;
+  animation: brilho 1.3s infinite;
+  border-radius: var(--radius-s);
+  height: 18px;
+}
+@keyframes brilho {
+  to {
+    background-position: -200% 0;
+  }
+}
+.empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--ink-3);
+}
+.empty h3 {
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-s);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 500;
+}
+.alert.info {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.alert.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .drawer {
+    width: 100%;
+  }
+}
+
+/* Listagens viram cartões empilhados no celular (rótulo vem de data-rotulo). */
+@media (max-width: 767px) {
+  .table.empilha thead {
+    display: none;
+  }
+  .table.empilha,
+  .table.empilha tbody,
+  .table.empilha tr,
+  .table.empilha td {
+    display: block;
+    width: 100%;
+  }
+  .table.empilha tr {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .table.empilha tr:last-child {
+    border-bottom: 0;
+  }
+  .table.empilha td {
+    border: 0;
+    padding: 3px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    text-align: right;
+  }
+  .table.empilha td::before {
+    content: attr(data-rotulo);
+    color: var(--ink-3);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-align: left;
+    flex: none;
+  }
+  .table.empilha td.acoes {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    padding-top: 8px;
+  }
+  .table.empilha td.acoes::before {
+    content: none;
+  }
+}

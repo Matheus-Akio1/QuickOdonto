@@ -1,0 +1,223 @@
+.agenda-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.semana {
+  display: grid;
+  grid-template-columns: 56px repeat(var(--dias, 6), minmax(120px, 1fr));
+  overflow-x: auto;
+}
+.semana-cab {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface);
+  padding: 10px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  font-weight: 600;
+}
+.semana-cab small {
+  display: block;
+  color: var(--ink-3);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.semana-cab.hoje {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+.horas {
+  position: relative;
+}
+.horas span {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+.coluna-dia {
+  position: relative;
+  border-left: 1px solid var(--line);
+  cursor: cell;
+}
+.linha-hora {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--line);
+  pointer-events: none;
+}
+.linha-meia {
+  border-top-style: dashed;
+  opacity: 0.6;
+}
+.fora-jornada {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 7px, rgb(21 48 44 / 7%) 7px 8px),
+    var(--neutral-soft);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.bloqueio {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(135deg, #f3dfdb 0 6px, #fff5f3 6px 12px);
+  border: 1px dashed #c98c83;
+  color: var(--danger);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  overflow: hidden;
+  cursor: not-allowed;
+}
+.evento {
+  position: absolute;
+  border: 0;
+  text-align: left;
+  border-radius: 8px;
+  padding: 3px 7px;
+  background: var(--cor, var(--primary));
+  color: #fff;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  border-left: 4px solid rgb(0 0 0 / 28%);
+}
+.evento strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.evento.cancelada,
+.evento.faltou {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.evento.concluida {
+  filter: saturate(0.5);
+}
+
+.legenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.legenda i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+/* Quadro do dia */
+.quadro {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(210px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.quadro-col {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+.quadro-col.alvo {
+  outline: 3px dashed var(--primary);
+  outline-offset: -3px;
+  background: var(--primary-soft);
+}
+.quadro-col header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-weight: 650;
+  border-bottom: 1px solid var(--line);
+}
+.quadro-lista {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.cartao {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--cor, var(--primary));
+  border-radius: var(--radius-s);
+  padding: 10px 12px;
+  box-shadow: var(--shadow-1);
+  touch-action: none;
+}
+.cartao.arrastando {
+  opacity: 0.4;
+}
+.cartao .hora {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cartao .acoes {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.cartao-flutuante {
+  box-shadow: var(--shadow-2);
+  cursor: grabbing;
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.slot {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+.slot[aria-pressed='true'] {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+@media (max-width: 767px) {
+  .quadro {
+    grid-template-columns: repeat(6, 78vw);
+    scroll-snap-type: x mandatory;
+  }
+  .quadro-col {
+    scroll-snap-align: start;
+  }
+}

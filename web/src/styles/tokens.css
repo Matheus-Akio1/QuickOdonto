@@ -1,0 +1,44 @@
+/* Tokens provisórios — o protótipo visual (29 telas) não está no repositório.
+   Trocar aqui quando as cores/raios oficiais forem confirmados. */
+:root {
+  --bg: #f3f1ea;
+  --surface: #ffffff;
+  --surface-2: #faf9f4;
+  --ink: #15302c;
+  --ink-2: #455b57;
+  --ink-3: #5f716d;
+  --line: #dde1d8;
+  --line-strong: #c3cabf;
+
+  --primary: #1a6b5e;
+  --primary-hover: #12564b;
+  --primary-soft: #e2f0ec;
+  --on-primary: #ffffff;
+  --side: #12302b;
+  --side-ink: #d7e6e2;
+  --side-ink-dim: #9fb8b2;
+  --side-active: #1f4a42;
+
+  --ok: #2a7a49;
+  --ok-soft: #e3f2e8;
+  --warn: #8f5a12;
+  --warn-soft: #fbefd6;
+  --danger: #ad352a;
+  --danger-soft: #fae5e2;
+  --info: #2a5d9b;
+  --info-soft: #e2edf9;
+  --violet: #5e4aa3;
+  --violet-soft: #ebe7f7;
+  --neutral-soft: #ebede7;
+
+  --radius-s: 8px;
+  --radius: 12px;
+  --radius-l: 18px;
+  --shadow-1: 0 1px 2px rgb(21 48 44 / 8%);
+  --shadow-2: 0 8px 28px rgb(21 48 44 / 16%);
+
+  --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-body: 'Figtree Variable', system-ui, sans-serif;
+
+  --touch: 44px;
+}
