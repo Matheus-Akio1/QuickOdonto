@@ -1,30 +1,31 @@
-# Plano da tarefa atual — Fase 0 (Fundação)
+# Plano da tarefa atual — M4 (Prontuário) — ⚠️ BLOQUEADO: disco cheio, Docker não inicia
 
-Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seção 1.
+Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seções 2.1 (prontuário), 3, 3.1, 4.4 e 5 (RN-006).
 
-## Objetivo
-Deixar o monorepo pronto para começar o M1 (fundação + auth + usuários + perfis): API Express rodando em Docker, Postgres subindo, Swagger abrindo, lint/format configurados nos dois projetos.
+## Escrito, AINDA NÃO EXECUTADO (nada marcado [x] no checklist)
+1. [ ] Migration `20261009000001_prontuario.js`: anamneses, evolucoes, adendos, anexos, acessos_prontuario,
+       links_download, procedimentos_catalogo, procedimentos_paciente, procedimento_adendos, planos_tratamento, plano_itens
+       — imutabilidade (RN-006) por trigger; FKs RESTRICT para pacientes
+2. [ ] `lib/odonto.js` (FDI), `lib/arquivoCifrado.js` (anexo cifrado + assinatura binária), `lib/links.js` (uso único, 60 s)
+3. [ ] Serviços e rotas: prontuário/linha do tempo, anamnese versionada + assinatura, evoluções + adendos,
+       acessos (RF-CLI-015), catálogo, procedimentos por dente/face, odontograma, planos, anexos, PDF
+4. [ ] `temHistorico()` estendido ao prontuário (RN-009); `authMiddleware`/`auditar` idempotentes
+5. [ ] Seed `03_catalogo_dev.js`; volume `anexos_data` no compose; `STORAGE_DIR` no `.env`
+6. [ ] `tests/m4.test.js` (~35 testes) — escrito, não rodado
+7. [ ] Contrato OpenAPI do M4 (53 rotas / 41 schemas — carrega sem erro) e tipos do front regenerados
 
-## Passos
-1. [x] `tasks/todo.md` e `tasks/lessons.md`
-2. [x] `.gitignore` (`.env`, `node_modules`, `dist`, etc.)
-3. [x] Backend (raiz): `package.json`, `src/index.js`, `src/config/db.js`, `src/swagger.js`, `src/middleware/errorHandler.js`, `src/modules/` (estrutura), rota `GET /health`
-4. [x] `.env` e `.env.example` (`DB_*`, `JWT_SECRET`, `JWT_EXPIRES`, `APP_URL`, `SMTP_*`)
-5. [x] ESLint + Prettier + EditorConfig no backend
-6. [x] Frontend `web/`: Vite + React + TS mínimo, ESLint + Prettier (trocado o `oxlint` padrão do scaffold por ESLint, como o checklist pede)
-7. [x] `Dockerfile` da API (raiz) e `web/Dockerfile`; `docker-compose.yml` (api, db, web)
-8. [x] Subido via `docker compose up -d --build`: `GET /health` → 200, `/api-docs` → 200, `web` → 200. Logs dos três serviços limpos.
-9. [x] Itens da Fase 0 marcados `[x]` no checklist, com a prova anotada na própria linha
-10. [x] Perguntado ao usuário — decidiu **não commitar agora**; revisará e commitará ele mesmo
+## Feito e verificado nesta etapa
+- [x] Busca de paciente fora da URL: `POST /pacientes/buscar`; `GET /pacientes?busca=` → 400. 71 testes backend verdes
+      (rodados ANTES do Docker cair). Front ajustado; `tsc`/lint/22 testes Vitest verdes; casts `as never` removidos.
 
-## Observações da execução
-- Porta 5432 do host já estava ocupada (outro processo/VM do Docker Desktop) — o Postgres do compose foi mapeado para `5433:5432` no host. Dentro da rede Docker o serviço `api` continua falando com `db:5432` normalmente.
-- Branch `main` no GitHub: não há `gh` instalado nesta máquina para verificar/configurar proteção de branch, e é uma ação administrativa em sistema remoto — deixei para o usuário confirmar manualmente.
-- Containers ficaram rodando ao final da tarefa (`docker compose ps` mostra os três `Up`). Parar com `docker compose down` quando não precisar mais.
+## Para retomar (depois de liberar espaço)
+1. `docker compose up -d --build -V --force-recreate api`
+2. `docker compose exec api npx knex migrate:latest && docker compose exec api npx knex seed:run`
+3. `docker compose exec api npx jest --runInBand --forceExit` → corrigir o que falhar
+4. Fluxo real via curl/navegador; só então marcar o checklist
 
-## Próximo marco após esta tarefa (M1)
-Autenticação (`POST /auth/login`, JWT, bcrypt), tabela `usuarios`, middlewares `authMiddleware` e `permitirPerfis`, testes de caminho permitido/bloqueado.
-
-## Decisões tomadas nesta tarefa
-- Backend mora na raiz do repo (`src/...`, conforme os caminhos literais do checklist), frontend em `web/`.
-- Migrations com Knex (a decidir definitivamente ao criar as tabelas reais — checklist pede Knex ou Prisma antes do primeiro deploy).
+## Observações
+- Testes rodam no container (`docker compose exec api npx jest --runInBand`) contra o banco **`quickodonto_test`** (criado e migrado pelo `tests/globalSetup.js`, truncado a cada execução) — nunca no de dev. O mailer é mockado.
+- E-mails de dev caem no Mailpit: http://localhost:8025 (`SMTP_HOST=mailpit` no `.env`).
+- Após instalar dependência nova: `docker compose up -d --build -V api` (o `-V` renova o volume anônimo de `node_modules`).
+- Seed de dev: usuários `*@quickodonto.test` por perfil; senha em `seeds/01_usuarios_dev.js` (só dev).
