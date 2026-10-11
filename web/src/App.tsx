@@ -29,6 +29,11 @@ const AnamnesePage = lazy(() =>
 const CatalogoPage = lazy(() =>
   import('./pages/clinica/CatalogoPage').then((m) => ({ default: m.CatalogoPage })),
 );
+const SelecionarPacientePage = lazy(() =>
+  import('./pages/clinica/SelecionarPacientePage').then((m) => ({
+    default: m.SelecionarPacientePage,
+  })),
+);
 const FichaPage = lazy(() =>
   import('./pages/pacientes/FichaPage').then((m) => ({ default: m.FichaPage })),
 );
@@ -56,6 +61,14 @@ export function App() {
               <Route path="/pacientes/:id" element={<FichaPage />} />
             </Route>
             <Route element={<RotaProtegida perfis={['clinica']} />}>
+              <Route
+                path="/clinica/prontuario"
+                element={<SelecionarPacientePage destino="prontuario" />}
+              />
+              <Route
+                path="/clinica/anamnese"
+                element={<SelecionarPacientePage destino="anamnese" />}
+              />
               <Route path="/clinica/prontuario/:id" element={<ProntuarioPage />} />
               <Route path="/clinica/anamnese/:id" element={<AnamnesePage />} />
               <Route path="/clinica/procedimentos" element={<CatalogoPage />} />

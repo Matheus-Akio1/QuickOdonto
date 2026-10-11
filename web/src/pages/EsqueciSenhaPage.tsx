@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { api, chamar, mensagemDeErro } from '../api/client';
 import { Button } from '../components/Button';
 import { Campo } from '../components/Campo';
-import { PaginaAuth } from './LoginPage';
+import { PaginaAuth, TituloAuth } from './LoginPage';
 
 const schema = z.object({
   email: z.string().min(1, 'Informe o e-mail.').email('E-mail inválido.'),
@@ -34,10 +34,10 @@ export function EsqueciSenhaPage() {
   return (
     <PaginaAuth>
       <div className="stack">
-        <div>
-          <h2>Recuperar senha</h2>
-          <p className="muted">Enviaremos um link de uso único, com validade curta.</p>
-        </div>
+        <TituloAuth
+          titulo="Recuperar senha"
+          texto="Enviaremos um link de uso único, com validade curta."
+        />
         {enviado ? (
           <div className="alert ok" role="status">
             Se o e-mail estiver cadastrado, o link de redefinição foi enviado. Confira sua caixa de
@@ -57,7 +57,7 @@ export function EsqueciSenhaPage() {
                   {...register('email')}
                   type="email"
                   autoComplete="email"
-                  className="input"
+                  className="inp"
                 />
               )}
             </Campo>

@@ -5,7 +5,7 @@ export const TEXTO_STATUS_CONSULTA: Record<StatusConsulta, string> = {
   confirmada: 'Confirmada',
   chegou: 'Chegou',
   em_atendimento: 'Em atendimento',
-  concluida: 'Concluída',
+  concluida: 'Finalizada',
   faltou: 'Faltou',
   cancelada: 'Cancelada',
 };

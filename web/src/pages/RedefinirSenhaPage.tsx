@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { api, chamar, mensagemDeErro } from '../api/client';
 import { Button } from '../components/Button';
 import { Campo } from '../components/Campo';
-import { PaginaAuth } from './LoginPage';
+import { PaginaAuth, TituloAuth } from './LoginPage';
 
 // Mesma política do backend: 10+ caracteres com minúscula, maiúscula e número.
 const schema = z
@@ -47,10 +47,10 @@ export function RedefinirSenhaPage() {
   return (
     <PaginaAuth>
       <div className="stack">
-        <div>
-          <h2>Definir nova senha</h2>
-          <p className="muted">Use pelo menos 10 caracteres, com maiúscula, minúscula e número.</p>
-        </div>
+        <TituloAuth
+          titulo="Definir nova senha"
+          texto="Use pelo menos 10 caracteres, com maiúscula, minúscula e número."
+        />
         {ok ? (
           <>
             <div className="alert ok" role="status">
@@ -74,7 +74,7 @@ export function RedefinirSenhaPage() {
                   {...register('novaSenha')}
                   type="password"
                   autoComplete="new-password"
-                  className="input"
+                  className="inp"
                 />
               )}
             </Campo>
@@ -85,7 +85,7 @@ export function RedefinirSenhaPage() {
                   {...register('confirmacao')}
                   type="password"
                   autoComplete="new-password"
-                  className="input"
+                  className="inp"
                 />
               )}
             </Campo>

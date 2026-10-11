@@ -60,3 +60,42 @@ export function facesNaTela(dente: number): {
 
 /** Faces válidas para o dente (O só em posteriores, I só em anteriores). */
 export const facesDoDente = (dente: number): Face[] => ['V', 'L', 'M', 'D', faceCentral(dente)];
+
+export type FormaDente = 'molar' | 'premolar' | 'canino' | 'incisivo';
+
+/** Silhueta usada no odontograma. Decíduos (quadrantes 5–8) não têm pré-molares: 4 e 5 são molares. */
+export function formaDoDente(dente: number): FormaDente {
+  const u = dente % 10;
+  const deciduo = quadrante(dente) >= 5;
+  if (u >= (deciduo ? 4 : 6)) return 'molar';
+  if (u >= 4) return 'premolar';
+  return u === 2 ? 'incisivo' : 'canino';
+}
+
+const TIPO: Record<number, string> = {
+  1: 'incisivo central',
+  2: 'incisivo lateral',
+  3: 'canino',
+  4: 'pré-molar',
+  5: 'pré-molar',
+  6: 'molar',
+  7: 'molar',
+  8: 'molar',
+};
+
+/** "pré-molar superior", "molar decíduo inferior"… */
+export function nomeDoDente(dente: number): string {
+  const u = dente % 10;
+  const deciduo = quadrante(dente) >= 5;
+  const tipo = deciduo && u >= 4 ? 'molar' : TIPO[u];
+  return `${tipo}${deciduo ? ' decíduo' : ''} ${superior(dente) ? 'superior' : 'inferior'}`;
+}
+
+/** Como o dente aparece no odontograma (legenda da prancha "Prontuário"). */
+export type Situacao = 'realizado' | 'planejado' | 'protese' | null;
+
+export const COR_SITUACAO: Record<Exclude<Situacao, null>, { fundo: string; borda: string }> = {
+  realizado: { fundo: '#DEF3E7', borda: '#3E9A6B' },
+  planejado: { fundo: '#E2EDFB', borda: '#5D86D6' },
+  protese: { fundo: '#ECE8FB', borda: '#8C74D6' },
+};

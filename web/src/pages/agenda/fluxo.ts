@@ -14,9 +14,9 @@ export const PODE_REAGENDAR: StatusConsulta[] = ['agendada', 'confirmada'];
 export const ROTULO_ACAO: Record<StatusConsulta, string> = {
   agendada: 'Agendada',
   confirmada: 'Confirmar',
-  chegou: 'Paciente chegou',
-  em_atendimento: 'Iniciar atendimento',
-  concluida: 'Concluir',
+  chegou: 'Marcar chegada',
+  em_atendimento: 'Chamar para a cadeira',
+  concluida: 'Finalizar atendimento',
   faltou: 'Marcar falta',
   cancelada: 'Cancelar',
 };

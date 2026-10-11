@@ -1700,6 +1700,7 @@ export interface paths {
       parameters: {
         query?: {
           ativo?: 'true' | 'false' | 'todos';
+          filtro?: 'consulta_hoje' | 'sem_retorno' | 'menores';
           pagina?: number;
           limite?: number;
         };
@@ -1825,6 +1826,8 @@ export interface paths {
             busca: string;
             /** @enum {string} */
             ativo?: 'true' | 'false' | 'todos';
+            /** @enum {string} */
+            filtro?: 'consulta_hoje' | 'sem_retorno' | 'menores';
             pagina?: number;
             limite?: number;
           };
@@ -3751,6 +3754,7 @@ export interface components {
         id: string;
         codigo: string;
         nome: string;
+        especialidade?: string | null;
       };
       dente?: number | null;
       faces: ('V' | 'L' | 'M' | 'D' | 'O' | 'I')[];
@@ -3964,6 +3968,20 @@ export interface components {
       ativo: boolean;
       /** Format: date-time */
       criado_em: string;
+      /** @description Só nas listagens */
+      proxima_consulta?: {
+        /** Format: date-time */
+        inicio: string;
+        /** @enum {string} */
+        status:
+          | 'agendada'
+          | 'confirmada'
+          | 'chegou'
+          | 'em_atendimento'
+          | 'concluida'
+          | 'faltou'
+          | 'cancelada';
+      } | null;
     };
     Consentimento: {
       /** Format: uuid */
@@ -4079,6 +4097,8 @@ export interface components {
         | 'cancelada';
       procedimento_previsto?: string | null;
       motivo_cancelamento?: string | null;
+      /** Format: date-time */
+      status_desde?: string | null;
       paciente: {
         /** Format: uuid */
         id: string;

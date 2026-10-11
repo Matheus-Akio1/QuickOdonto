@@ -1,223 +1,367 @@
-.agenda-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.semana {
-  display: grid;
-  grid-template-columns: 56px repeat(var(--dias, 6), minmax(120px, 1fr));
+/* ---------- Agenda (prancha "Agenda · semana") ---------- */
+.ag {
+  display: flex;
   overflow-x: auto;
 }
-.semana-cab {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: var(--surface);
-  padding: 10px 6px;
-  text-align: center;
-  border-bottom: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-  font-weight: 600;
+.ag-horas {
+  width: 64px;
+  flex-shrink: 0;
 }
-.semana-cab small {
-  display: block;
+.ag-horas span.h {
+  position: absolute;
+  right: 10px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--ink-3);
-  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.ag-agora-tag {
+  position: absolute;
+  right: 6px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #b4501a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  transform: translateY(-50%);
+}
+.ag-dia {
+  flex: 1 1 0;
+  min-width: 128px;
+  border-left: 1px solid var(--line);
+}
+.ag-dia-cab {
+  height: 68px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+.ag-dia-cab .sem {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.semana-cab.hoje {
-  color: var(--primary);
-  background: var(--primary-soft);
+.ag-dia-cab .num-dia {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
 }
-.horas {
-  position: relative;
+.ag-dia.hoje .ag-dia-cab,
+.ag-dia.hoje .ag-corpo {
+  background-color: #eef6f3;
 }
-.horas span {
-  position: absolute;
-  right: 8px;
-  transform: translateY(-50%);
-  font-size: 0.74rem;
-  color: var(--ink-3);
-}
-.coluna-dia {
-  position: relative;
-  border-left: 1px solid var(--line);
-  cursor: cell;
-}
-.linha-hora {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-top: 1px solid var(--line);
-  pointer-events: none;
-}
-.linha-meia {
-  border-top-style: dashed;
-  opacity: 0.6;
-}
-.fora-jornada {
-  position: absolute;
-  left: 0;
-  right: 0;
-  background:
-    repeating-linear-gradient(135deg, transparent 0 7px, rgb(21 48 44 / 7%) 7px 8px),
-    var(--neutral-soft);
-  opacity: 0.8;
-  pointer-events: none;
-}
-.bloqueio {
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  border-radius: 6px;
-  background: repeating-linear-gradient(135deg, #f3dfdb 0 6px, #fff5f3 6px 12px);
-  border: 1px dashed #c98c83;
-  color: var(--danger);
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  overflow: hidden;
-  cursor: not-allowed;
-}
-.evento {
-  position: absolute;
-  border: 0;
-  text-align: left;
-  border-radius: 8px;
-  padding: 3px 7px;
-  background: var(--cor, var(--primary));
+.ag-dia.hoje .num-dia {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--petroleo);
   color: #fff;
-  font-size: 0.78rem;
-  line-height: 1.25;
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: var(--shadow-1);
-  border-left: 4px solid rgb(0 0 0 / 28%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
-.evento strong {
-  display: block;
+.ag-dia.hoje .sem {
+  color: var(--primary-ink);
+}
+.ag-corpo {
+  position: relative;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 33px, #efede7 33px 34px);
+}
+.ag-fechado,
+.ag-fora {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: repeating-linear-gradient(135deg, #ebe9e2 0 6px, #f5f4f0 6px 12px);
+  pointer-events: none;
+}
+.ag-bloqueio {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(135deg, #f6e3df 0 6px, #fdf3f1 6px 12px);
+  border: 1px dashed #dfa59c;
+  color: var(--danger-ink);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 8px;
+  overflow: hidden;
+}
+.ag-ev {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 10px;
+  padding: 6px 8px;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--ev-borda);
+  background: var(--ev-fundo);
+  color: var(--ev-texto);
+  font-family: inherit;
+}
+.ag-ev .hr {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ag-ev .nm {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 14px;
+}
+.ag-ev .pr {
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.evento.cancelada,
-.evento.faltou {
+.ag-ev .marca {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  line-height: 0;
+}
+/* aguardando confirmação: contorno tracejado sobre fundo branco */
+.ag-ev.aguardando {
+  background: #fff;
+  border: 1.5px dashed var(--ev-forte);
+}
+/* já atendida (ou falta/cancelada, quando exibidas) */
+.ag-ev.atendida {
+  opacity: 0.62;
+}
+.ag-ev.inativa {
   opacity: 0.45;
   text-decoration: line-through;
 }
-.evento.concluida {
-  filter: saturate(0.5);
+.ag-agora {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid #b4501a;
+  pointer-events: none;
+  z-index: 2;
 }
-
-.legenda {
+.ag-agora::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b4501a;
+}
+.ag-legenda {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   flex-wrap: wrap;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--ink-2);
 }
-.legenda i {
+.ag-legenda i {
   display: inline-block;
-  width: 12px;
+  width: 22px;
   height: 12px;
   border-radius: 4px;
   margin-right: 6px;
   vertical-align: -1px;
 }
-
-/* Quadro do dia */
-.quadro {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(210px, 1fr));
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
+.prof-chip {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 8px;
+  min-height: 38px;
 }
-.quadro-col {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  min-height: 320px;
-  display: flex;
-  flex-direction: column;
+.prof-chip input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
-.quadro-col.alvo {
-  outline: 3px dashed var(--primary);
-  outline-offset: -3px;
-  background: var(--primary-soft);
-}
-.quadro-col header {
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-display);
-  font-weight: 650;
-  border-bottom: 1px solid var(--line);
-}
-.quadro-lista {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-.cartao {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 5px solid var(--cor, var(--primary));
-  border-radius: var(--radius-s);
-  padding: 10px 12px;
-  box-shadow: var(--shadow-1);
-  touch-action: none;
-}
-.cartao.arrastando {
-  opacity: 0.4;
-}
-.cartao .hora {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.cartao .acoes {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-.cartao-flutuante {
-  box-shadow: var(--shadow-2);
-  cursor: grabbing;
-}
-
 .slots {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 .slot {
-  min-height: 40px;
+  height: 36px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--line-strong);
-  background: var(--surface);
+  background: #fff;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--ink-2);
   cursor: pointer;
+  font-variant-numeric: tabular-nums;
 }
 .slot[aria-pressed='true'] {
-  background: var(--primary);
+  background: var(--petroleo);
+  border-color: var(--petroleo);
   color: #fff;
-  border-color: var(--primary);
 }
 
+/* ---------- Quadro do dia (prancha "Agenda · quadro do dia") ---------- */
+.quadro {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(196px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  align-items: stretch;
+  flex-grow: 1;
+}
+.q-nome {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink);
+  cursor: pointer;
+}
+.q-nome:hover {
+  color: var(--primary);
+}
+.q-col {
+  background: var(--neutral-soft);
+  border: 1px solid transparent;
+  border-radius: 18px;
+  padding: 12px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 420px;
+}
+.q-col.chegou {
+  background: #fff3e8;
+  border-color: #f0be96;
+}
+.q-col.em_atendimento {
+  background: #edf3fd;
+  border-color: #b5cdf2;
+}
+.q-col.alvo {
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
+}
+.q-cab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 2px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.q-cab .ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.q-cab .n {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.q-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  touch-action: none;
+}
+.q-card.arrastando {
+  opacity: 0.4;
+}
+.q-card.flutuante {
+  box-shadow: var(--shadow-2);
+  border: 2px solid var(--primary);
+  cursor: grabbing;
+}
+.q-card .hora {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.q-prof {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.q-prof::before {
+  flex: none;
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.q-solte {
+  border: 1.5px dashed #86bfb3;
+  background: #e3f2ee;
+  color: var(--primary-ink);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
 @media (max-width: 767px) {
   .quadro {
-    grid-template-columns: repeat(6, 78vw);
+    grid-template-columns: repeat(5, 80vw);
     scroll-snap-type: x mandatory;
   }
-  .quadro-col {
+  .q-col {
     scroll-snap-align: start;
+  }
+  .ag-dia {
+    min-width: 0;
   }
 }

@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variante = 'primary' | 'secondary' | 'ghost' | 'danger';
+/** Variantes do protótipo: primária (.pri), contorno (padrão), menta (.sec) + fantasma e perigo do app. */
+type Variante = 'primary' | 'secondary' | 'mint' | 'ghost' | 'danger';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variante?: Variante;
@@ -9,10 +10,11 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const CLASSE: Record<Variante, string> = {
-  primary: '',
-  secondary: 'btn-secondary',
-  ghost: 'btn-ghost',
-  danger: 'btn-danger',
+  primary: 'pri',
+  secondary: '',
+  mint: 'sec',
+  ghost: 'ghost',
+  danger: 'danger',
 };
 
 export function Button({
@@ -25,7 +27,7 @@ export function Button({
   type = 'button',
   ...resto
 }: Props) {
-  const classes = ['btn', CLASSE[variante], pequeno ? 'btn-sm' : '', className]
+  const classes = ['btn', CLASSE[variante], pequeno ? 'sm' : '', className]
     .filter(Boolean)
     .join(' ');
   return (

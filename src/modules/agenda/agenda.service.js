@@ -120,7 +120,9 @@ async function substituirHorarios(profissionalId, horarios) {
 const SELECT_CONSULTA = `
   SELECT c.id, c.inicio, c.fim, c.cadeira, c.status, c.procedimento_previsto, c.motivo_cancelamento,
          pa.id AS paciente_id, pa.nome AS paciente_nome,
-         pr.id AS profissional_id, u.nome AS profissional_nome, pr.cor_agenda
+         pr.id AS profissional_id, u.nome AS profissional_nome, pr.cor_agenda,
+         (SELECT max(h.em) FROM consulta_historico h
+           WHERE h.consulta_id = c.id AND h.para_status = c.status) AS status_desde
     FROM consultas c
     JOIN pacientes pa ON pa.id = c.paciente_id
     JOIN profissionais pr ON pr.id = c.profissional_id
@@ -135,6 +137,8 @@ function formatarConsulta(r) {
     status: r.status,
     procedimento_previsto: r.procedimento_previsto,
     motivo_cancelamento: r.motivo_cancelamento,
+    // Quando a consulta entrou no status atual: alimenta "aguardando há…" no quadro do dia.
+    status_desde: r.status_desde || null,
     paciente: { id: r.paciente_id, nome: r.paciente_nome },
     profissional: { id: r.profissional_id, nome: r.profissional_nome, cor_agenda: r.cor_agenda },
   };

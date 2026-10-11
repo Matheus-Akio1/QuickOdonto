@@ -146,7 +146,7 @@ const schemas = {
       catalogo: {
         type: 'object',
         required: ['id', 'codigo', 'nome'],
-        properties: { id: uuid, codigo: str, nome: str },
+        properties: { id: uuid, codigo: str, nome: str, especialidade: strNull },
       },
       dente: { type: 'integer', nullable: true },
       faces: { type: 'array', items: { type: 'string', enum: ['V', 'L', 'M', 'D', 'O', 'I'] } },
@@ -371,6 +371,13 @@ const schemas = {
       origem: strNull,
       ativo: { type: 'boolean' },
       criado_em: dt,
+      proxima_consulta: {
+        type: 'object',
+        nullable: true,
+        required: ['inicio', 'status'],
+        properties: { inicio: dt, status: statusConsulta },
+        description: 'Só nas listagens',
+      },
     },
   },
   Consentimento: {
@@ -485,6 +492,7 @@ const schemas = {
       status: statusConsulta,
       procedimento_previsto: strNull,
       motivo_cancelamento: strNull,
+      status_desde: { ...dt, nullable: true },
       paciente: { type: 'object', required: ['id', 'nome'], properties: { id: uuid, nome: str } },
       profissional: {
         type: 'object',
@@ -591,6 +599,7 @@ const operacoes = {
       properties: {
         busca: str,
         ativo: { type: 'string', enum: ['true', 'false', 'todos'] },
+        filtro: { type: 'string', enum: ['consulta_hoje', 'sem_retorno', 'menores'] },
         pagina: { type: 'integer' },
         limite: { type: 'integer' },
       },

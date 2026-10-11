@@ -72,7 +72,7 @@ async function atualizarCatalogo(id, d) {
 const SELECT_PROC = `
   SELECT pp.id, pp.paciente_id, pp.dente, pp.faces, pp.status, pp.data::text AS data, pp.valor,
          pp.observacao_cifrado, pp.plano_id, pp.criado_em,
-         c.id AS catalogo_id, c.codigo, c.nome, u.nome AS profissional_nome
+         c.id AS catalogo_id, c.codigo, c.nome, c.especialidade, u.nome AS profissional_nome
     FROM procedimentos_paciente pp
     JOIN procedimentos_catalogo c ON c.id = pp.catalogo_id
     LEFT JOIN profissionais p ON p.id = pp.profissional_id
@@ -93,7 +93,12 @@ function formatar(p, adendos = []) {
   return {
     id: p.id,
     paciente_id: p.paciente_id,
-    catalogo: { id: p.catalogo_id, codigo: p.codigo, nome: p.nome },
+    catalogo: {
+      id: p.catalogo_id,
+      codigo: p.codigo,
+      nome: p.nome,
+      especialidade: p.especialidade || null,
+    },
     dente: p.dente,
     faces: p.faces,
     status: p.status,

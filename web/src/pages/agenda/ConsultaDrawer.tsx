@@ -9,11 +9,23 @@ import { Button } from '../../components/Button';
 import { Campo } from '../../components/Campo';
 import { Carregando, ErroCarga } from '../../components/Feedback';
 import { Overlay } from '../../components/Overlay';
+import {
+  IconeAbrirFicha,
+  IconeAgenda,
+  IconeCheck,
+  IconeReagendar,
+  IconeRelogio,
+  IconeWhatsapp,
+} from '../../components/Icones';
 import { StatusConsulta } from '../../components/StatusBadge';
+import { TEXTO_STATUS_CONSULTA } from '../../lib/status';
+import { Avatar } from '../../components/Avatar';
+import { mapaDeAcentos } from '../../lib/acentos';
 import {
   dataDe,
-  fmtDataBR,
   fmtDataHora,
+  fmtDiaExtenso,
+  fmtDuracao,
   fmtHora,
   hhmm,
   isoLocal,
@@ -56,6 +68,7 @@ export function ConsultaDrawer({ id, podeEditar, profissionais, onFechar }: Prop
 
   const c = consulta.data;
   const proximo = c ? PROXIMO[c.status] : undefined;
+  const acento = c ? mapaDeAcentos(profissionais)[c.profissional.id] : undefined;
 
   return (
     <Overlay
@@ -73,86 +86,135 @@ export function ConsultaDrawer({ id, podeEditar, profissionais, onFechar }: Prop
       ) : !c ? (
         <Carregando />
       ) : (
-        <div className="stack">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <h3>
-              <Link to={`/pacientes/${c.paciente.id}`}>{c.paciente.nome}</Link>
-            </h3>
+        <div className="stack" style={{ gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Avatar nome={c.paciente.nome} tamanho={46} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              <h3 className="h3" style={{ fontSize: 20 }}>
+                {c.paciente.nome}
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+                  {c.procedimento_previsto ?? 'Consulta'}
+                </span>
+                <span
+                  className="q-prof"
+                  style={{ marginLeft: 0, background: acento?.fundo, color: acento?.texto }}
+                >
+                  {c.profissional.nome}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, color: 'var(--ink-2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <IconeAgenda tamanho={16} />
+              {fmtDiaExtenso(dataDe(c.inicio))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <IconeRelogio tamanho={16} />
+              <span className="num">
+                {fmtHora(c.inicio)} – {fmtHora(c.fim)}
+              </span>
+              <span style={{ color: 'var(--ink-3)' }}>
+                · {fmtDuracao(minutosDoDia(c.fim) - minutosDoDia(c.inicio))} · cadeira {c.cadeira}
+              </span>
+            </div>
+          </div>
+          <div>
             <StatusConsulta status={c.status} />
           </div>
-          {usuario && podeVerProntuario(usuario.perfil) && (
-            <Link className="btn btn-secondary" to={`/clinica/prontuario/${c.paciente.id}`}>
-              Abrir prontuário
-            </Link>
+          {c.motivo_cancelamento && (
+            <div className="alert info">Motivo do cancelamento: {c.motivo_cancelamento}</div>
           )}
-          <dl className="dl">
-            <dt>Quando</dt>
-            <dd>
-              {fmtDataBR(dataDe(c.inicio))} · {fmtHora(c.inicio)} – {fmtHora(c.fim)}
-            </dd>
-            <dt>Profissional</dt>
-            <dd>{c.profissional.nome}</dd>
-            <dt>Cadeira</dt>
-            <dd>{c.cadeira}</dd>
-            <dt>Procedimento</dt>
-            <dd>{c.procedimento_previsto ?? '—'}</dd>
-            {c.motivo_cancelamento && (
-              <>
-                <dt>Motivo</dt>
-                <dd>{c.motivo_cancelamento}</dd>
-              </>
-            )}
-          </dl>
 
-          {podeEditar && (
-            <div className="row">
-              {proximo && (
-                <Button
-                  carregando={mudar.isPending}
-                  onClick={() => mudar.mutate({ id, status: proximo as never })}
-                >
-                  {ROTULO_ACAO[proximo]}
-                </Button>
-              )}
+          {podeEditar && proximo && (
+            <button
+              type="button"
+              className="btn pri"
+              style={{ height: 44, width: '100%' }}
+              disabled={mudar.isPending}
+              onClick={() => mudar.mutate({ id, status: proximo as never })}
+            >
+              <IconeCheck />
+              {ROTULO_ACAO[proximo]}
+            </button>
+          )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {podeEditar && PODE_REAGENDAR.includes(c.status) && (
+              <button
+                type="button"
+                className="btn sm"
+                style={{ flexGrow: 1 }}
+                disabled={whatsapp.isPending}
+                onClick={() => whatsapp.mutate()}
+              >
+                <IconeWhatsapp />
+                Lembrete no WhatsApp
+              </button>
+            )}
+            {podeEditar && PODE_REAGENDAR.includes(c.status) && (
+              <button
+                type="button"
+                className="btn sm"
+                style={{ flexGrow: 1 }}
+                onClick={() => setReagendando(true)}
+              >
+                <IconeReagendar />
+                Reagendar
+              </button>
+            )}
+            {usuario && podeVerProntuario(usuario.perfil) ? (
+              <Link
+                className="btn sm"
+                style={{ flexGrow: 1 }}
+                to={`/clinica/prontuario/${c.paciente.id}`}
+              >
+                <IconeAbrirFicha />
+                Abrir prontuário
+              </Link>
+            ) : (
+              <Link className="btn sm" style={{ flexGrow: 1 }} to={`/pacientes/${c.paciente.id}`}>
+                <IconeAbrirFicha />
+                Abrir ficha
+              </Link>
+            )}
+          </div>
+          {podeEditar && (PODE_FALTAR.includes(c.status) || PODE_CANCELAR.includes(c.status)) && (
+            <div style={{ display: 'flex', gap: 8 }}>
               {PODE_FALTAR.includes(c.status) && (
-                <Button variante="secondary" onClick={() => mudar.mutate({ id, status: 'faltou' })}>
+                <button
+                  type="button"
+                  className="btn sm ghost"
+                  onClick={() => mudar.mutate({ id, status: 'faltou' })}
+                >
                   Marcar falta
-                </Button>
-              )}
-              {PODE_REAGENDAR.includes(c.status) && (
-                <Button variante="secondary" onClick={() => setReagendando(true)}>
-                  Reagendar
-                </Button>
+                </button>
               )}
               {PODE_CANCELAR.includes(c.status) && (
-                <Button variante="secondary" onClick={() => setCancelando(true)}>
-                  Cancelar consulta
-                </Button>
-              )}
-              {PODE_REAGENDAR.includes(c.status) && (
-                <Button
-                  variante="ghost"
-                  carregando={whatsapp.isPending}
-                  onClick={() => whatsapp.mutate()}
+                <button
+                  type="button"
+                  className="btn sm ghost"
+                  style={{ color: 'var(--bad)' }}
+                  onClick={() => setCancelando(true)}
                 >
-                  Lembrete no WhatsApp
-                </Button>
+                  Cancelar consulta
+                </button>
               )}
             </div>
           )}
 
-          <section>
-            <h3 style={{ marginBottom: 8 }}>Histórico</h3>
+          <section style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>
+              Histórico
+            </div>
             <ol className="stack" style={{ listStyle: 'none', padding: 0, margin: 0, gap: 10 }}>
               {c.historico?.map((h, i) => (
                 <li key={i}>
-                  <strong>
-                    {h.de_status && h.de_status !== h.para_status
-                      ? `${h.de_status} → ${h.para_status}`
-                      : h.para_status}
-                  </strong>
+                  <strong style={{ fontSize: 14 }}>{TEXTO_STATUS_CONSULTA[h.para_status]}</strong>
                   <br />
-                  <span className="muted">
+                  <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>
                     {fmtDataHora(h.em)} · {h.usuario_nome ?? 'sistema'}
                     {h.observacao ? ` · ${h.observacao}` : ''}
                   </span>

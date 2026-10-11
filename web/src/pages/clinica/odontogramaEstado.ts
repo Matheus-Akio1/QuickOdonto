@@ -1,29 +1,35 @@
-import type { Face, ProcedimentoPaciente } from '../../api/types';
-import type { EstadoFace } from './Dente';
-
-const PRIORIDADE: Record<string, number> = { em_andamento: 3, planejado: 2, concluido: 1 };
-const maisRelevante = (a: EstadoFace | undefined, b: EstadoFace): EstadoFace =>
-  !a || (b && PRIORIDADE[b] > PRIORIDADE[a]) ? b : a;
+import type { ProcedimentoPaciente } from '../../api/types';
+import type { Situacao } from '../../lib/odonto';
 
 export interface EstadoDente {
-  faces: Partial<Record<Face, EstadoFace>>;
-  inteiro: EstadoFace | null;
+  situacao: Situacao;
+  /** Procedimento que explica a situação (o que aparece na barra do dente selecionado). */
+  principal: ProcedimentoPaciente | null;
   procedimentos: ProcedimentoPaciente[];
 }
 
+const ehProtese = (p: ProcedimentoPaciente) => /pr[oó]tese/i.test(p.catalogo.especialidade ?? '');
+const pendente = (p: ProcedimentoPaciente) =>
+  p.status === 'planejado' || p.status === 'em_andamento';
+
 /**
- * Situação por dente e por face a partir dos procedimentos (cancelados não contam).
- * Em andamento > planejado > concluído — o que exige atenção aparece primeiro.
+ * Situação por dente a partir dos procedimentos (cancelados não contam).
+ * Prótese > planejado/em andamento > realizado — a mesma ordem de leitura da legenda do protótipo.
  */
 export function estadoPorDente(procs: ProcedimentoPaciente[]): Record<number, EstadoDente> {
   const mapa: Record<number, EstadoDente> = {};
   for (const p of procs) {
     if (!p.dente) continue;
-    const d = (mapa[p.dente] ??= { faces: {}, inteiro: null, procedimentos: [] });
-    d.procedimentos.push(p);
-    if (p.status === 'cancelado') continue;
-    if (p.faces.length === 0) d.inteiro = maisRelevante(d.inteiro ?? undefined, p.status);
-    for (const f of p.faces) d.faces[f] = maisRelevante(d.faces[f], p.status);
+    (mapa[p.dente] ??= { situacao: null, principal: null, procedimentos: [] }).procedimentos.push(
+      p,
+    );
+  }
+  for (const d of Object.values(mapa)) {
+    const vivos = d.procedimentos.filter((p) => p.status !== 'cancelado');
+    const protese = vivos.find(ehProtese);
+    const aberto = vivos.find(pendente);
+    d.principal = protese ?? aberto ?? vivos[0] ?? null;
+    d.situacao = protese ? 'protese' : aberto ? 'planejado' : vivos.length ? 'realizado' : null;
   }
   return mapa;
 }

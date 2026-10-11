@@ -54,13 +54,29 @@ async function buscarLinha(id) {
   return rows[0];
 }
 
-async function listar({ busca, ativo, pagina, limite }) {
+// Próxima consulta ainda por acontecer (ou em curso) — alimenta a coluna e os filtros da lista.
+const PROXIMA_CONSULTA = `
+  LEFT JOIN LATERAL (
+    SELECT c.inicio, c.status FROM consultas c
+     WHERE c.paciente_id = pacientes.id
+       AND c.status IN ('agendada','confirmada','chegou','em_atendimento') AND c.fim >= now()
+     ORDER BY c.inicio LIMIT 1
+  ) pc ON true`;
+const HOJE_SP = "(now() AT TIME ZONE 'America/Sao_Paulo')::date";
+const FILTROS = {
+  consulta_hoje: `(pc.inicio AT TIME ZONE 'America/Sao_Paulo')::date = ${HOJE_SP}`,
+  sem_retorno: 'pc.inicio IS NULL',
+  menores: `nascimento > (${HOJE_SP} - interval '18 years')`,
+};
+
+async function listar({ busca, ativo, filtro, pagina, limite }) {
   const cond = [];
   const val = [];
   if (ativo !== 'todos') {
     val.push(ativo === 'true');
     cond.push(`ativo = $${val.length}`);
   }
+  if (filtro) cond.push(FILTROS[filtro]);
   if (busca) {
     const ou = [];
     val.push(`%${escaparLike(busca)}%`);
@@ -77,12 +93,23 @@ async function listar({ busca, ativo, pagina, limite }) {
     cond.push(`(${ou.join(' OR ')})`);
   }
   const where = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
-  const total = await query(`SELECT count(*)::int AS n FROM pacientes ${where}`, val);
+  const total = await query(
+    `SELECT count(*)::int AS n FROM pacientes ${PROXIMA_CONSULTA} ${where}`,
+    val,
+  );
   const { rows } = await query(
-    `SELECT ${COLUNAS} FROM pacientes ${where} ORDER BY nome LIMIT $${val.length + 1} OFFSET $${val.length + 2}`,
+    `SELECT ${COLUNAS}, pc.inicio AS proxima_inicio, pc.status AS proxima_status
+       FROM pacientes ${PROXIMA_CONSULTA} ${where}
+      ORDER BY nome LIMIT $${val.length + 1} OFFSET $${val.length + 2}`,
     [...val, limite, (pagina - 1) * limite],
   );
-  return { itens: rows.map((r) => serializar(r)), pagina, limite, total: total.rows[0].n };
+  const itens = rows.map((r) => ({
+    ...serializar(r),
+    proxima_consulta: r.proxima_inicio
+      ? { inicio: r.proxima_inicio, status: r.proxima_status }
+      : null,
+  }));
+  return { itens, pagina, limite, total: total.rows[0].n };
 }
 
 /** Mapeia o objeto validado para colunas (cifrando/hasheando o que for sensível). */
