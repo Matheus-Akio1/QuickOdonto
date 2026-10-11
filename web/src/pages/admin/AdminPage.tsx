@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Abas } from '../../components/Abas';
+import { CatalogoProcedimentos } from '../clinica/CatalogoProcedimentos';
 import { AuditoriaTab } from './AuditoriaTab';
 import { PermissoesTab } from './PermissoesTab';
 import { ProfissionaisTab } from './ProfissionaisTab';
@@ -11,6 +12,7 @@ export function AdminPage({ unidade }: { unidade: 'clinica' | 'laboratorio' }) {
       ? [
           { id: 'usuarios', rotulo: 'Usuários' },
           { id: 'profissionais', rotulo: 'Profissionais e jornada' },
+          { id: 'catalogo', rotulo: 'Catálogo de procedimentos' },
           { id: 'auditoria', rotulo: 'Auditoria' },
         ]
       : [
@@ -35,6 +37,7 @@ export function AdminPage({ unidade }: { unidade: 'clinica' | 'laboratorio' }) {
       <Abas abas={abas} ativa={aba} onMudar={setAba} />
       {aba === 'usuarios' && <UsuariosTab unidade={unidade} />}
       {aba === 'profissionais' && <ProfissionaisTab />}
+      {aba === 'catalogo' && <CatalogoProcedimentos />}
       {aba === 'permissoes' && <PermissoesTab />}
       {aba === 'auditoria' && <AuditoriaTab />}
     </div>

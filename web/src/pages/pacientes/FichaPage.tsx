@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { api, chamar, mensagemDeErro } from '../../api/client';
-import { podeAgendar, podeCadastrarPaciente } from '../../auth/permissoes';
+import { podeAgendar, podeCadastrarPaciente, podeVerProntuario } from '../../auth/permissoes';
 import { useAuth } from '../../auth/useAuth';
 import { Button } from '../../components/Button';
 import { Campo } from '../../components/Campo';
@@ -147,6 +147,11 @@ export function FichaPage() {
           </p>
         </div>
         <div className="row">
+          {podeVerProntuario(usuario.perfil) && (
+            <Link className="btn" to={`/clinica/prontuario/${p.id}`}>
+              Abrir prontuário
+            </Link>
+          )}
           {agenda && p.ativo && (
             <Button onClick={() => navegar(`/agenda?novaConsulta=${p.id}`)}>
               Agendar consulta

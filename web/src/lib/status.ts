@@ -1,4 +1,4 @@
-import type { StatusConsulta } from '../api/types';
+import type { StatusConsulta, StatusProcedimento } from '../api/types';
 
 export const TEXTO_STATUS_CONSULTA: Record<StatusConsulta, string> = {
   agendada: 'Agendada',
@@ -11,3 +11,10 @@ export const TEXTO_STATUS_CONSULTA: Record<StatusConsulta, string> = {
 };
 
 export const textoStatusConsulta = (s: StatusConsulta): string => TEXTO_STATUS_CONSULTA[s];
+
+export const TEXTO_STATUS_PROC: Record<StatusProcedimento, string> = {
+  planejado: 'Planejado',
+  em_andamento: 'Em andamento',
+  concluido: 'Concluído',
+  cancelado: 'Cancelado',
+};

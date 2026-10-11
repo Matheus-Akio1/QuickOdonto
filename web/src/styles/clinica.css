@@ -1,0 +1,186 @@
+/* ---------- Odontograma ---------- */
+.dente-svg .face {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.dente-svg .face-planejado {
+  fill: #cfe0f7;
+}
+.dente-svg .face-em_andamento {
+  fill: #f6d79c;
+}
+.dente-svg .face-concluido {
+  fill: #b9e0c6;
+}
+.dente-svg .face-selecionada {
+  fill: var(--primary);
+}
+.dente-svg .contorno {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 3;
+  rx: 4;
+}
+.dente-planejado .contorno {
+  stroke: var(--info);
+}
+.dente-em_andamento .contorno {
+  stroke: var(--warn);
+}
+.dente-concluido .contorno {
+  stroke: var(--ok);
+}
+
+.arcada {
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;
+  /* centraliza quando cabe; quando não cabe, rola inteira (justify-content: center cortaria o início) */
+  width: max-content;
+  margin: 0 auto;
+}
+.arcada + .arcada {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line-strong);
+}
+.arcada .linha-media {
+  width: 2px;
+  background: var(--line-strong);
+  margin: 0 6px;
+  align-self: stretch;
+}
+.dente-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 2px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-s);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.dente-btn:hover {
+  background: var(--surface-2);
+}
+.dente-btn[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.odonto-wrap {
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.odonto-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.faces-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.alertas {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid #efc3bd;
+  margin-bottom: 16px;
+}
+.alertas strong {
+  font-family: var(--font-display);
+}
+.alerta-chip {
+  background: #fff;
+  border: 1px solid #efc3bd;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* ---------- Linha do tempo ---------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 18px;
+  border-left: 2px solid var(--line);
+}
+.timeline li {
+  position: relative;
+  padding: 0 0 18px 14px;
+}
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--primary);
+}
+.timeline li.t-anamnese::before {
+  border-color: var(--violet);
+}
+.timeline li.t-procedimento::before {
+  border-color: var(--ok);
+}
+.timeline li.t-anexo::before {
+  border-color: var(--info);
+}
+.timeline li.t-consulta::before {
+  border-color: var(--ink-3);
+}
+.evolucao {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.evolucao .texto {
+  white-space: pre-wrap;
+  margin-top: 6px;
+}
+.adendo {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--violet);
+  background: var(--violet-soft);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+}
+.anexos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.previa-anexo {
+  max-width: 100%;
+  max-height: 70dvh;
+  display: block;
+  margin: 0 auto;
+  border-radius: var(--radius-s);
+}
+
+@media (max-width: 1100px) {
+  .odonto-layout {
+    /* minmax(0, …): a arcada rola dentro do cartão em vez de alargar a página */
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

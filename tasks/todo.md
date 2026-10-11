@@ -1,28 +1,25 @@
-# Plano da tarefa atual — M4 (Prontuário) — ⚠️ BLOQUEADO: disco cheio, Docker não inicia
+# Plano da tarefa atual — M4 (Prontuário) — backend e front concluídos
 
-Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seções 2.1 (prontuário), 3, 3.1, 4.4 e 5 (RN-006).
+Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seções 2.1, 3, 3.1, 3.2, 4.4, 5, 6.1 e 6.2.
 
-## Escrito, AINDA NÃO EXECUTADO (nada marcado [x] no checklist)
-1. [ ] Migration `20261009000001_prontuario.js`: anamneses, evolucoes, adendos, anexos, acessos_prontuario,
-       links_download, procedimentos_catalogo, procedimentos_paciente, procedimento_adendos, planos_tratamento, plano_itens
-       — imutabilidade (RN-006) por trigger; FKs RESTRICT para pacientes
-2. [ ] `lib/odonto.js` (FDI), `lib/arquivoCifrado.js` (anexo cifrado + assinatura binária), `lib/links.js` (uso único, 60 s)
-3. [ ] Serviços e rotas: prontuário/linha do tempo, anamnese versionada + assinatura, evoluções + adendos,
-       acessos (RF-CLI-015), catálogo, procedimentos por dente/face, odontograma, planos, anexos, PDF
-4. [ ] `temHistorico()` estendido ao prontuário (RN-009); `authMiddleware`/`auditar` idempotentes
-5. [ ] Seed `03_catalogo_dev.js`; volume `anexos_data` no compose; `STORAGE_DIR` no `.env`
-6. [ ] `tests/m4.test.js` (~35 testes) — escrito, não rodado
-7. [ ] Contrato OpenAPI do M4 (53 rotas / 41 schemas — carrega sem erro) e tipos do front regenerados
+## Feito
+1. [x] Backend do prontuário (ver checklist): RN-006 por trigger, acesso registrado, texto clínico e anexos cifrados
+2. [x] Front: `/clinica/prontuario/:id` (alertas, linha do tempo, evoluções/adendos, odontograma, plano, anexos, acessos, PDF),
+       `/clinica/anamnese/:id`, `/clinica/procedimentos` (+ aba Catálogo na administração da clínica)
+3. [x] Ligações: "Abrir prontuário" na ficha e no drawer da consulta (só dentista); menu "Procedimentos" para o dentista
+4. [x] Conteúdo clínico no front com `gcTime: 0` (não fica em memória depois de sair da tela)
+5. [x] 103 testes backend + 31 front; fluxo percorrido no navegador como Dentista, Secretaria e Adm. Clínica; celular conferido
+6. [x] Bugs achados na validação e corrigidos: arcada cortada/inalcançável, ordem dos itens do plano, PDF de anexo
+       sem visualizador (agora baixa), rolagem até o painel do dente no celular
 
-## Feito e verificado nesta etapa
-- [x] Busca de paciente fora da URL: `POST /pacientes/buscar`; `GET /pacientes?busca=` → 400. 71 testes backend verdes
-      (rodados ANTES do Docker cair). Front ajustado; `tsc`/lint/22 testes Vitest verdes; casts `as never` removidos.
-
-## Para retomar (depois de liberar espaço)
-1. `docker compose up -d --build -V --force-recreate api`
-2. `docker compose exec api npx knex migrate:latest && docker compose exec api npx knex seed:run`
-3. `docker compose exec api npx jest --runInBand --forceExit` → corrigir o que falhar
-4. Fluxo real via curl/navegador; só então marcar o checklist
+## Pendências
+- [ ] Planos aprovados → contas a receber (M6)
+- [ ] Exportação xlsx de pacientes por link de uso único
+- [ ] Anexos de OS quando o M3 existir
+- [ ] Script de rotação de chave (formato já versionado: `v1:` / `QOA1`)
+- [ ] Backup do volume `anexos_data` junto com o Postgres (M9)
+- [ ] Playwright cobrindo login → prontuário → evolução (hoje validado à mão no navegador)
+- [ ] Próximo marco: M3 (ordens de serviço) ou M5 (estoque)
 
 ## Observações
 - Testes rodam no container (`docker compose exec api npx jest --runInBand`) contra o banco **`quickodonto_test`** (criado e migrado pelo `tests/globalSetup.js`, truncado a cada execução) — nunca no de dev. O mailer é mockado.

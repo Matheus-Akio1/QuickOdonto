@@ -47,6 +47,7 @@
     "setupFiles": [
       "./tests/setupEnv.js"
     ],
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testSequencer": "./tests/sequencer.js"
   }
 }
