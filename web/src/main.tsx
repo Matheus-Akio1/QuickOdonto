@@ -8,10 +8,10 @@ import { z } from 'zod';
 import { App } from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { ToastProvider } from './toast/ToastProvider';
+
 import './styles/tokens.css';
-import './styles/base.css';
-import './styles/ui.css';
-import './styles/layout.css';
+import './styles/proto.css';
+import './styles/app.css';
 import './styles/agenda.css';
 import './styles/clinica.css';
 

@@ -1,44 +1,54 @@
-/* Tokens provisórios — o protótipo visual (29 telas) não está no repositório.
-   Trocar aqui quando as cores/raios oficiais forem confirmados. */
+/* Tokens do "Sistema visual · v2" do protótipo (canvas "QuickOdonto — telas melhoradas"). */
 :root {
-  --bg: #f3f1ea;
+  /* Base */
+  --petroleo: #0b3d39; /* menu lateral, login */
+  --primary: #0f6b63; /* ações e seleção */
+  --primary-hover: #0b5650;
+  --primary-soft: #dcefea; /* menta — fundos de destaque */
+  --primary-ink: #0a4f49;
+  --bg: #f5f4f0; /* porcelana — fundo das telas */
   --surface: #ffffff;
-  --surface-2: #faf9f4;
-  --ink: #15302c;
-  --ink-2: #455b57;
-  --ink-3: #5f716d;
-  --line: #dde1d8;
-  --line-strong: #c3cabf;
+  --surface-2: #faf9f6;
+  --ink: #14211f; /* tinta — texto principal */
+  --ink-2: #3d4b48;
+  --ink-3: #5e6b68;
+  --line: #e4e2db;
+  --line-strong: #d3d0c7;
+  --neutral-soft: #eceae3;
+  --peach: #f2b880; /* destaque de marca */
 
-  --primary: #1a6b5e;
-  --primary-hover: #12564b;
-  --primary-soft: #e2f0ec;
-  --on-primary: #ffffff;
-  --side: #12302b;
-  --side-ink: #d7e6e2;
-  --side-ink-dim: #9fb8b2;
-  --side-active: #1f4a42;
+  /* Acentos por contexto: [forte, fundo, texto] */
+  --laranja: #de6b2f;
+  --laranja-soft: #fce8d8;
+  --laranja-ink: #7a3209;
+  --violet: #6553d6;
+  --violet-soft: #ece8fb;
+  --violet-ink: #43339a;
+  --info: #2f6fd0;
+  --info-soft: #e2edfb;
+  --info-ink: #1b438f;
+  --rosa: #c93e6b;
+  --rosa-soft: #fbe4ec;
+  --rosa-ink: #86203f;
 
-  --ok: #2a7a49;
-  --ok-soft: #e3f2e8;
-  --warn: #8f5a12;
-  --warn-soft: #fbefd6;
-  --danger: #ad352a;
-  --danger-soft: #fae5e2;
-  --info: #2a5d9b;
-  --info-soft: #e2edf9;
-  --violet: #5e4aa3;
-  --violet-soft: #ebe7f7;
-  --neutral-soft: #ebede7;
+  /* Semânticas */
+  --ok: #067647;
+  --ok-soft: #def3e7;
+  --ok-ink: #05603a;
+  --warn: #b54708;
+  --warn-soft: #feefd6;
+  --warn-ink: #8a3b0a;
+  --danger: #b42318;
+  --danger-soft: #fde7e4;
+  --danger-ink: #912018;
 
-  --radius-s: 8px;
+  --radius-s: 10px;
   --radius: 12px;
-  --radius-l: 18px;
-  --shadow-1: 0 1px 2px rgb(21 48 44 / 8%);
-  --shadow-2: 0 8px 28px rgb(21 48 44 / 16%);
+  --radius-l: 16px;
+  --shadow-1: 0 1px 2px rgb(20 33 31 / 4%);
+  --shadow-2: 0 12px 32px rgb(20 33 31 / 18%);
 
-  --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --font-body: 'Figtree Variable', system-ui, sans-serif;
-
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
   --touch: 44px;
 }

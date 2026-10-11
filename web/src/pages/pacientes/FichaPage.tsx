@@ -5,9 +5,18 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { api, chamar, mensagemDeErro } from '../../api/client';
-import { podeAgendar, podeCadastrarPaciente, podeVerProntuario } from '../../auth/permissoes';
+import {
+  NOME_PAINEL,
+  podeAgendar,
+  podeCadastrarPaciente,
+  podeVerProntuario,
+} from '../../auth/permissoes';
 import { useAuth } from '../../auth/useAuth';
+import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { IconeAgenda, IconeEditar, IconePasta } from '../../components/Icones';
+import { Cabecalho } from '../../layout/Cabecalho';
+import { idade } from '../../lib/pessoa';
 import { Campo } from '../../components/Campo';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Carregando, ErroCarga } from '../../components/Feedback';
@@ -87,13 +96,13 @@ export function FichaPage() {
 
   if (ficha.error)
     return (
-      <div className="page">
+      <div className="content" style={{ paddingTop: 28 }}>
         <ErroCarga erro={ficha.error} onTentar={() => ficha.refetch()} />
       </div>
     );
   if (!ficha.data || !usuario)
     return (
-      <div className="page">
+      <div className="content" style={{ paddingTop: 28 }}>
         <Carregando />
       </div>
     );
@@ -131,158 +140,178 @@ export function FichaPage() {
     );
   };
 
+  const anos = idade(p.nascimento);
+
   return (
-    <div className="page">
-      <div className="page-head">
-        <div>
-          <p>
-            <Link to="/pacientes">← Pacientes</Link>
-          </p>
-          <h1>{p.nome}</h1>
-          <p className="row">
-            <span className="mono">Prontuário #{p.numero_prontuario}</span>
-            <span className={`badge ${p.ativo ? 'badge-ok' : ''}`}>
-              {p.ativo ? 'Ativo' : 'Inativo'}
+    <>
+      <Cabecalho
+        trilha={`${NOME_PAINEL[usuario.perfil]} / Pacientes / Ficha`}
+        titulo="Ficha do paciente"
+      >
+        {podeVerProntuario(usuario.perfil) && (
+          <Link className="btn pri" to={`/clinica/prontuario/${p.id}`}>
+            <IconePasta />
+            Abrir prontuário
+          </Link>
+        )}
+        {agenda && p.ativo && (
+          <Link className="btn pri" to={`/agenda?novaConsulta=${p.id}`}>
+            <IconeAgenda />
+            Agendar consulta
+          </Link>
+        )}
+      </Cabecalho>
+
+      <div className="content">
+        <div className="card pad row" style={{ gap: 16 }}>
+          <Avatar nome={p.nome} tamanho={56} />
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: 4, flexGrow: 1, minWidth: 0 }}
+          >
+            <div className="row" style={{ gap: 10 }}>
+              <h2
+                className="disp"
+                style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em' }}
+              >
+                {p.nome}
+              </h2>
+              <span className={`badge ${p.ativo ? 'b-ok' : 'b-mut'}`}>
+                {p.ativo ? 'Ativo' : 'Inativo'}
+              </span>
+              {anos !== null && anos < 18 && <span className="badge b-mut">Menor de idade</span>}
+            </div>
+            <span className="num muted">
+              Prontuário {String(p.numero_prontuario).padStart(5, '0')}
+              {anos !== null ? ` · ${anos} anos` : ''}
             </span>
-          </p>
-        </div>
-        <div className="row">
-          {podeVerProntuario(usuario.perfil) && (
-            <Link className="btn" to={`/clinica/prontuario/${p.id}`}>
-              Abrir prontuário
-            </Link>
-          )}
-          {agenda && p.ativo && (
-            <Button onClick={() => navegar(`/agenda?novaConsulta=${p.id}`)}>
-              Agendar consulta
-            </Button>
-          )}
+          </div>
           {escreve && (
-            <>
-              <Button variante="secondary" onClick={() => setEditando(true)}>
+            <div className="row">
+              <button type="button" className="btn" onClick={() => setEditando(true)}>
+                <IconeEditar />
                 Editar
-              </Button>
-              <Button variante="secondary" onClick={() => setRemovendo(true)}>
+              </button>
+              <button type="button" className="btn" onClick={() => setRemovendo(true)}>
                 {p.ativo ? 'Inativar / excluir' : 'Excluir'}
-              </Button>
-            </>
+              </button>
+            </div>
           )}
         </div>
-      </div>
 
-      <div className="grid-2">
-        <section className="card">
-          <div className="card-head">
-            <h2>Dados pessoais</h2>
-          </div>
-          <dl className="dl">
-            <dt>CPF</dt>
-            <dd>{valor('cpf', p.cpf)}</dd>
-            <dt>Nascimento</dt>
-            <dd>{p.nascimento ? fmtDataBR(p.nascimento) : '—'}</dd>
-            <dt>Sexo</dt>
-            <dd>
-              {p.sexo === 'F'
-                ? 'Feminino'
-                : p.sexo === 'M'
-                  ? 'Masculino'
-                  : p.sexo === 'O'
-                    ? 'Outro'
-                    : '—'}
-            </dd>
-            <dt>Celular</dt>
-            <dd>{valor('celular', p.celular)}</dd>
-            <dt>E-mail</dt>
-            <dd>{p.email ?? '—'}</dd>
-            <dt>Origem</dt>
-            <dd>{p.origem ?? '—'}</dd>
-          </dl>
-        </section>
+        <div className="grid-2">
+          <section className="card pad">
+            <div className="card-head">
+              <h2 className="h2">Dados pessoais</h2>
+            </div>
+            <dl className="dl">
+              <dt>CPF</dt>
+              <dd>{valor('cpf', p.cpf)}</dd>
+              <dt>Nascimento</dt>
+              <dd>{p.nascimento ? fmtDataBR(p.nascimento) : '—'}</dd>
+              <dt>Sexo</dt>
+              <dd>
+                {p.sexo === 'F'
+                  ? 'Feminino'
+                  : p.sexo === 'M'
+                    ? 'Masculino'
+                    : p.sexo === 'O'
+                      ? 'Outro'
+                      : '—'}
+              </dd>
+              <dt>Celular</dt>
+              <dd>{valor('celular', p.celular)}</dd>
+              <dt>E-mail</dt>
+              <dd>{p.email ?? '—'}</dd>
+              <dt>Origem</dt>
+              <dd>{p.origem ?? '—'}</dd>
+            </dl>
+          </section>
 
-        <section className="card">
-          <div className="card-head">
-            <h2>Endereço e responsável</h2>
-          </div>
-          <dl className="dl">
-            <dt>Endereço</dt>
-            <dd>
-              {p.endereco
-                ? [
-                    [p.endereco.logradouro, p.endereco.numero].filter(Boolean).join(', '),
-                    p.endereco.complemento,
-                    p.endereco.bairro,
-                    [p.endereco.cidade, p.endereco.uf].filter(Boolean).join('/'),
-                    p.endereco.cep,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
-                : '—'}
-            </dd>
-            <dt>Responsável</dt>
-            <dd>
-              {p.responsavel
-                ? `${p.responsavel.nome}${p.responsavel.parentesco ? ` (${p.responsavel.parentesco})` : ''}`
-                : '—'}
-            </dd>
-            <dt>Cel. responsável</dt>
-            <dd>{valor('responsavel_celular', p.responsavel?.celular)}</dd>
-            <dt>Observações</dt>
-            <dd style={{ whiteSpace: 'pre-wrap' }}>{p.observacoes ?? '—'}</dd>
-          </dl>
-        </section>
+          <section className="card pad">
+            <div className="card-head">
+              <h2 className="h2">Endereço e responsável</h2>
+            </div>
+            <dl className="dl">
+              <dt>Endereço</dt>
+              <dd>
+                {p.endereco
+                  ? [
+                      [p.endereco.logradouro, p.endereco.numero].filter(Boolean).join(', '),
+                      p.endereco.complemento,
+                      p.endereco.bairro,
+                      [p.endereco.cidade, p.endereco.uf].filter(Boolean).join('/'),
+                      p.endereco.cep,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  : '—'}
+              </dd>
+              <dt>Responsável</dt>
+              <dd>
+                {p.responsavel
+                  ? `${p.responsavel.nome}${p.responsavel.parentesco ? ` (${p.responsavel.parentesco})` : ''}`
+                  : '—'}
+              </dd>
+              <dt>Cel. responsável</dt>
+              <dd>{valor('responsavel_celular', p.responsavel?.celular)}</dd>
+              <dt>Observações</dt>
+              <dd style={{ whiteSpace: 'pre-wrap' }}>{p.observacoes ?? '—'}</dd>
+            </dl>
+          </section>
 
-        <section className="card">
-          <div className="card-head">
-            <h2>Próximas consultas</h2>
-          </div>
-          {resumo.isLoading ? (
-            <Carregando linhas={2} />
-          ) : !resumo.data?.proximas_consultas.length ? (
-            <p className="muted">Nenhuma consulta futura.</p>
-          ) : (
-            <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {resumo.data.proximas_consultas.map((c) => (
-                <li key={c.id} className="row" style={{ justifyContent: 'space-between' }}>
-                  <span>
-                    <strong>{fmtDataHora(c.inicio)}</strong>
+          <section className="card pad">
+            <div className="card-head">
+              <h2 className="h2">Próximas consultas</h2>
+            </div>
+            {resumo.isLoading ? (
+              <Carregando linhas={2} />
+            ) : !resumo.data?.proximas_consultas.length ? (
+              <p className="muted">Nenhuma consulta futura.</p>
+            ) : (
+              <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {resumo.data.proximas_consultas.map((c) => (
+                  <li key={c.id} className="row" style={{ justifyContent: 'space-between' }}>
+                    <span>
+                      <strong>{fmtDataHora(c.inicio)}</strong>
+                      <br />
+                      <span className="muted">
+                        {c.profissional_nome}
+                        {c.procedimento_previsto ? ` · ${c.procedimento_previsto}` : ''}
+                      </span>
+                    </span>
+                    <StatusConsulta status={c.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="card pad">
+            <div className="card-head">
+              <h2 className="h2">Consentimentos LGPD</h2>
+              {escreve && (
+                <Button variante="secondary" pequeno onClick={() => setConsentindo(true)}>
+                  Registrar
+                </Button>
+              )}
+            </div>
+            {!p.consentimentos?.length ? (
+              <p className="muted">Nenhum consentimento registrado.</p>
+            ) : (
+              <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {p.consentimentos.map((c) => (
+                  <li key={c.id}>
+                    <strong>{c.finalidade}</strong>
                     <br />
                     <span className="muted">
-                      {c.profissional_nome}
-                      {c.procedimento_previsto ? ` · ${c.procedimento_previsto}` : ''}
+                      {FORMAS[c.forma]} · {fmtDataHora(c.data)}
                     </span>
-                  </span>
-                  <StatusConsulta status={c.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="card">
-          <div className="card-head">
-            <h2>Consentimentos LGPD</h2>
-            {escreve && (
-              <Button variante="secondary" pequeno onClick={() => setConsentindo(true)}>
-                Registrar
-              </Button>
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
-          {!p.consentimentos?.length ? (
-            <p className="muted">Nenhum consentimento registrado.</p>
-          ) : (
-            <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {p.consentimentos.map((c) => (
-                <li key={c.id}>
-                  <strong>{c.finalidade}</strong>
-                  <br />
-                  <span className="muted">
-                    {FORMAS[c.forma]} · {fmtDataHora(c.data)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          </section>
+        </div>
       </div>
 
       {editando && <PacienteForm paciente={p} onFechar={() => setEditando(false)} />}
@@ -303,7 +332,7 @@ export function FichaPage() {
           </p>
         </ConfirmDialog>
       )}
-    </div>
+    </>
   );
 }
 

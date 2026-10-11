@@ -216,6 +216,25 @@ describe('pacientes — cadastro, criptografia e máscaras', () => {
     expect((await sec.patch(`/pacientes/${id}`).send({})).status).toBe(400);
   });
 
+  test('lista traz a próxima consulta e aceita os filtros rápidos', async () => {
+    const todos = await sec.get('/pacientes?limite=100');
+    expect(todos.body.itens.every((p) => 'proxima_consulta' in p)).toBe(true);
+    const menor = await sec.post('/pacientes').send({
+      nome: 'Mia Menor',
+      nascimento: new Date(Date.now() - 10 * 365 * 86400000).toISOString().slice(0, 10),
+      responsavel_nome: 'Pai da Mia',
+    });
+    const menores = await sec.get('/pacientes?filtro=menores&limite=100');
+    expect(menores.body.itens.map((p) => p.id)).toContain(menor.body.id);
+    expect(menores.body.itens.map((p) => p.id)).not.toContain(id);
+    const semRetorno = await sec
+      .post('/pacientes/buscar')
+      .send({ busca: 'Mia Menor', filtro: 'sem_retorno' });
+    expect(semRetorno.body.itens.map((p) => p.id)).toEqual([menor.body.id]);
+    expect(semRetorno.body.itens[0].proxima_consulta).toBeNull();
+    expect((await sec.get('/pacientes?filtro=invalido')).status).toBe(400);
+  });
+
   test('busca pela URL é recusada: o termo (que pode ser CPF) só vai no corpo', async () => {
     const r = await sec.get(`/pacientes?busca=${cpf}`);
     expect(r.status).toBe(400);
@@ -578,6 +597,8 @@ describe('consultas — status, histórico e reagendamento', () => {
       'concluida',
     ]);
     expect(det.body.historico.every((h) => h.usuario_nome === 'sec')).toBe(true);
+    // status_desde = momento em que entrou no status atual (quadro do dia: "aguardando há…")
+    expect(det.body.status_desde).toBe(det.body.historico.at(-1).em);
   });
 
   test('cancelar exige motivo, não vale para concluída nem duas vezes; concluída não reagenda', async () => {

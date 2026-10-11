@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Button } from './Button';
+import { IconeFechar } from './Icones';
 
 interface Props {
   titulo: string;
@@ -76,12 +76,18 @@ export function Overlay({
       >
         <div className={`${prefixo}-head`}>
           <div>
-            <h2>{titulo}</h2>
-            {descricao && <p className="muted">{descricao}</p>}
+            <h2 className="h2" style={{ fontSize: 22 }}>
+              {titulo}
+            </h2>
+            {descricao && (
+              <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+                {descricao}
+              </p>
+            )}
           </div>
-          <Button variante="ghost" className="btn-icon" onClick={onFechar} aria-label="Fechar">
-            ✕
-          </Button>
+          <button type="button" className="ibtn" onClick={onFechar} aria-label="Fechar">
+            <IconeFechar />
+          </button>
         </div>
         <div className={`${prefixo}-body`}>{children}</div>
         {rodape && <div className={`${prefixo}-foot`}>{rodape}</div>}

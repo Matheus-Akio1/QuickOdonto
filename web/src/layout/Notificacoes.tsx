@@ -36,16 +36,16 @@ export function Notificacoes() {
   const naoLidas = data?.nao_lidas ?? 0;
   return (
     <div className="pop-wrap" ref={caixa}>
-      <Button
-        variante="ghost"
-        className="btn-icon"
+      <button
+        type="button"
+        className="ibtn"
         aria-label={`Notificações${naoLidas ? `, ${naoLidas} não lidas` : ''}`}
         aria-expanded={aberto}
         onClick={() => setAberto((v) => !v)}
       >
         <IconeSino />
-        {naoLidas > 0 && <span className="contador">{naoLidas}</span>}
-      </Button>
+        {naoLidas > 0 && <span className="dot" />}
+      </button>
       {aberto && (
         <div className="popover" role="region" aria-label="Notificações">
           {!data?.itens.length && <p className="empty">Nenhuma notificação.</p>}

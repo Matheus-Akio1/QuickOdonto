@@ -10,40 +10,75 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { api, chamar } from '../../api/client';
 import type { Consulta, StatusConsulta } from '../../api/types';
-import { podeAgendar } from '../../auth/permissoes';
+import { NOME_PAINEL, podeAgendar, podeVerProntuario } from '../../auth/permissoes';
 import { useAuth } from '../../auth/useAuth';
-import { Button } from '../../components/Button';
 import { ErroCarga } from '../../components/Feedback';
-import { textoStatusConsulta } from '../../lib/status';
-import { fmtDataBR, fmtHora, hoje, isoLocal, nomeDiaLongo, somarDias } from '../../lib/datas';
+import {
+  IconeCheck,
+  IconeMais,
+  IconeRaio,
+  IconeReagendar,
+  IconeRelogio,
+  IconeSetaDireita,
+  IconeWhatsapp,
+} from '../../components/Icones';
+import { BuscaCabecalho, Cabecalho } from '../../layout/Cabecalho';
+import { mapaDeAcentos, type Acento } from '../../lib/acentos';
+import { fmtDecorrido, fmtDiaExtenso, fmtHora, hoje, isoLocal, somarDias } from '../../lib/datas';
 import { useToast } from '../../toast/useToast';
-import { CancelarDialog } from './CancelarDialog';
+import { BarraAgenda } from './BarraAgenda';
 import { ConsultaDrawer } from './ConsultaDrawer';
-import { PODE_CANCELAR, PODE_FALTAR, PROXIMO, ROTULO_ACAO } from './fluxo';
+import { NovaConsultaModal } from './NovaConsultaModal';
+import { PROXIMO } from './fluxo';
 import { useMudarStatus } from './useMudarStatus';
 
-const COLUNAS: StatusConsulta[] = [
-  'agendada',
-  'confirmada',
-  'chegou',
-  'em_atendimento',
-  'concluida',
-  'faltou',
-];
 type StatusMovel = Exclude<StatusConsulta, 'agendada' | 'cancelada'>;
+type Coluna = 'agendada' | 'confirmada' | 'chegou' | 'em_atendimento' | 'encerradas';
+
+const COLUNAS: { id: Coluna; titulo: string; ponto: string }[] = [
+  { id: 'agendada', titulo: 'Agendada', ponto: '#7A8683' },
+  { id: 'confirmada', titulo: 'Confirmada', ponto: '#2F6FD0' },
+  { id: 'chegou', titulo: 'Chegou', ponto: '#DE6B2F' },
+  { id: 'em_atendimento', titulo: 'Em atendimento', ponto: '#2F6FD0' },
+  { id: 'encerradas', titulo: 'Encerradas', ponto: '#067647' },
+];
+/** O que acontece ao soltar um cartão em cada coluna. */
+const ALVO: Partial<Record<Coluna, StatusMovel>> = {
+  confirmada: 'confirmada',
+  chegou: 'chegou',
+  em_atendimento: 'em_atendimento',
+  encerradas: 'concluida',
+};
+const DICA: Partial<Record<Coluna, string>> = {
+  confirmada: 'Solte aqui para confirmar',
+  chegou: 'Solte aqui para marcar chegada',
+  em_atendimento: 'Solte aqui para chamar para a cadeira',
+  encerradas: 'Solte aqui para finalizar',
+};
+const ENCERRADAS: { status: StatusConsulta; titulo: string; ponto: string }[] = [
+  { status: 'concluida', titulo: 'Finalizada', ponto: '#067647' },
+  { status: 'faltou', titulo: 'Faltou', ponto: '#B42318' },
+  { status: 'cancelada', titulo: 'Cancelada', ponto: '#7A8683' },
+];
+const colunaDe = (s: StatusConsulta): Coluna =>
+  s === 'concluida' || s === 'faltou' || s === 'cancelada' ? 'encerradas' : s;
 
 export function QuadroPage() {
   const { usuario } = useAuth();
   const { avisar } = useToast();
+  const navegar = useNavigate();
   const edita = usuario ? podeAgendar(usuario.perfil) : false;
+  const verProntuario = usuario ? podeVerProntuario(usuario.perfil) : false;
   const [dia, setDia] = useState(hoje());
-  const [profissional, setProfissional] = useState('');
+  const [fora, setFora] = useState<Set<string>>(new Set());
   const [arrastando, setArrastando] = useState<Consulta | null>(null);
-  const [cancelar, setCancelar] = useState<string | null>(null);
   const [aberta, setAberta] = useState<string | null>(null);
+  const [novo, setNovo] = useState<{ pacienteId?: string } | null>(null);
+  const [buscaPac, setBuscaPac] = useState('');
   const mudar = useMudarStatus();
 
   const inicio = isoLocal(dia, '00:00');
@@ -52,255 +87,369 @@ export function QuadroPage() {
     queryKey: ['profissionais'],
     queryFn: () => chamar(api.GET('/profissionais')),
   });
+  const lista = useMemo(() => profs.data ?? [], [profs.data]);
+  const acentos = useMemo(() => mapaDeAcentos(lista), [lista]);
+  const selecionados = useMemo(
+    () => new Set(lista.filter((p) => !fora.has(p.id)).map((p) => p.id)),
+    [lista, fora],
+  );
   const consultas = useQuery({
-    queryKey: ['consultas', inicio, fim, profissional],
-    queryFn: () =>
-      chamar(
-        api.GET('/consultas', {
-          params: { query: { inicio, fim, profissional: profissional || undefined } },
-        }),
-      ),
+    queryKey: ['consultas', inicio, fim],
+    queryFn: () => chamar(api.GET('/consultas', { params: { query: { inicio, fim } } })),
   });
 
   const sensores = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const todas = consultas.data ?? [];
-  const canceladas = todas.filter((c) => c.status === 'cancelada').length;
+  const visiveis = todas.filter((c) => selecionados.has(c.profissional.id));
+  const contagem = todas.reduce<Record<string, number>>((acc, c) => {
+    acc[c.profissional.id] = (acc[c.profissional.id] ?? 0) + 1;
+    return acc;
+  }, {});
+  // Coluna para onde o cartão em arrasto pode ir (só a etapa seguinte).
+  const destino = arrastando ? PROXIMO[arrastando.status] : undefined;
 
   const aoSoltar = (e: DragEndEvent) => {
     setArrastando(null);
-    const alvo = e.over?.id as StatusConsulta | undefined;
+    const col = e.over?.id as Coluna | undefined;
     const c = todas.find((x) => x.id === e.active.id);
-    if (!alvo || !c || alvo === c.status) return;
-    if (alvo === 'agendada' || alvo === 'cancelada') {
-      avisar('Para voltar para “Agendada” ou cancelar, use os botões do cartão.', 'erro');
+    if (!col || !c || col === colunaDe(c.status)) return;
+    const alvo = ALVO[col];
+    if (!alvo) {
+      avisar('Uma consulta não volta para “Agendada”.', 'erro');
       return;
     }
-    mudar.mutate({ id: c.id, status: alvo as StatusMovel });
+    mudar.mutate({ id: c.id, status: alvo });
   };
-
   const aoComecar = (e: DragStartEvent) =>
     setArrastando(todas.find((x) => x.id === e.active.id) ?? null);
+  const alternar = (id: string) =>
+    setFora((atual) => {
+      const n = new Set(atual);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+
+  if (!usuario) return null;
 
   return (
-    <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Quadro do dia</h1>
-          <p>
-            {edita
-              ? 'Arraste o cartão para a próxima etapa ou use os botões.'
-              : 'Visualização somente leitura.'}
-          </p>
-        </div>
-      </div>
-
-      <div className="toolbar">
-        <div className="row">
-          <Button
-            variante="secondary"
-            aria-label="Dia anterior"
-            onClick={() => setDia(somarDias(dia, -1))}
-          >
-            ‹
-          </Button>
-          <Button variante="secondary" onClick={() => setDia(hoje())}>
-            Hoje
-          </Button>
-          <Button
-            variante="secondary"
-            aria-label="Próximo dia"
-            onClick={() => setDia(somarDias(dia, 1))}
-          >
-            ›
-          </Button>
-          <strong aria-live="polite">
-            {nomeDiaLongo(dia)}, {fmtDataBR(dia)}
-          </strong>
-        </div>
-        <div className="grow" />
-        <label className="sr-only" htmlFor="quadro-prof">
-          Profissional
-        </label>
-        <select
-          id="quadro-prof"
-          className="select"
-          style={{ width: 'auto' }}
-          value={profissional}
-          onChange={(e) => setProfissional(e.target.value)}
+    <>
+      <Cabecalho trilha={`${NOME_PAINEL[usuario.perfil]} / Agenda`} titulo="Quadro do dia">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (buscaPac.trim()) navegar('/pacientes', { state: { busca: buscaPac.trim() } });
+          }}
         >
-          <option value="">Todos os profissionais</option>
-          {profs.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nome}
-            </option>
-          ))}
-        </select>
+          <BuscaCabecalho
+            valor={buscaPac}
+            onMudar={setBuscaPac}
+            placeholder="Buscar paciente"
+            largura={280}
+          />
+        </form>
+        {edita && lista.length > 0 && (
+          <button type="button" className="btn pri" onClick={() => setNovo({})}>
+            <IconeMais />
+            Nova consulta
+          </button>
+        )}
+      </Cabecalho>
+
+      <div className="content" style={{ gap: 14 }}>
+        <BarraAgenda
+          visao="quadro"
+          titulo={fmtDiaExtenso(dia)}
+          onHoje={() => setDia(hoje())}
+          onMover={(d) => setDia(somarDias(dia, d))}
+          profissionais={lista}
+          acentos={acentos}
+          selecionados={selecionados}
+          onAlternar={alternar}
+          contagem={contagem}
+        />
+        {consultas.error && (
+          <ErroCarga erro={consultas.error} onTentar={() => consultas.refetch()} />
+        )}
+
+        <DndContext
+          sensors={sensores}
+          onDragStart={aoComecar}
+          onDragEnd={aoSoltar}
+          onDragCancel={() => setArrastando(null)}
+        >
+          <div className="quadro" aria-busy={consultas.isFetching}>
+            {COLUNAS.map((col) => {
+              const itens = visiveis.filter((c) => colunaDe(c.status) === col.id);
+              const ehDestino = Boolean(destino && colunaDe(destino) === col.id);
+              return (
+                <ColunaQuadro
+                  key={col.id}
+                  coluna={col}
+                  total={itens.length}
+                  edita={edita}
+                  mostrarDica={ehDestino}
+                >
+                  {col.id === 'encerradas'
+                    ? ENCERRADAS.map((g) => {
+                        const doGrupo = itens.filter((c) => c.status === g.status);
+                        if (!doGrupo.length) return null;
+                        return (
+                          <div key={g.status} className="stack" style={{ gap: 8 }}>
+                            <div className="q-cab" style={{ fontSize: 13, padding: '2px 4px 0' }}>
+                              <span className="ponto" style={{ background: g.ponto }} />
+                              {g.titulo}
+                              <span className="n">{doGrupo.length}</span>
+                            </div>
+                            {doGrupo.map((c) => (
+                              <Cartao
+                                key={c.id}
+                                c={c}
+                                acento={acentos[c.profissional.id]}
+                                edita={false}
+                                onAbrir={setAberta}
+                                onReagendar={(id) => setNovo({ pacienteId: id })}
+                                podeReagendar={edita}
+                              />
+                            ))}
+                          </div>
+                        );
+                      })
+                    : itens.map((c) => (
+                        <CartaoArrastavel
+                          verProntuario={verProntuario}
+                          key={c.id}
+                          c={c}
+                          acento={acentos[c.profissional.id]}
+                          edita={edita}
+                          onAbrir={setAberta}
+                          onMudar={(id, s) => mudar.mutate({ id, status: s })}
+                        />
+                      ))}
+                </ColunaQuadro>
+              );
+            })}
+          </div>
+          <DragOverlay>
+            {arrastando ? (
+              <Cartao
+                c={arrastando}
+                acento={acentos[arrastando.profissional.id]}
+                edita={false}
+                flutuante
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
-      {consultas.error && <ErroCarga erro={consultas.error} onTentar={() => consultas.refetch()} />}
-      {canceladas > 0 && (
-        <p className="muted" style={{ marginBottom: 10 }}>
-          {canceladas} consulta(s) cancelada(s) neste dia não aparecem no quadro.
-        </p>
-      )}
-
-      <DndContext
-        sensors={sensores}
-        onDragStart={aoComecar}
-        onDragEnd={aoSoltar}
-        onDragCancel={() => setArrastando(null)}
-      >
-        <div className="quadro" aria-busy={consultas.isFetching}>
-          {COLUNAS.map((status) => (
-            <Coluna
-              key={status}
-              status={status}
-              consultas={todas.filter((c) => c.status === status)}
-              edita={edita}
-              onAbrir={setAberta}
-              onCancelar={setCancelar}
-              onMudar={(id, s) => mudar.mutate({ id, status: s })}
-            />
-          ))}
-        </div>
-        <DragOverlay>
-          {arrastando ? <Cartao c={arrastando} flutuante edita={false} /> : null}
-        </DragOverlay>
-      </DndContext>
-
-      {cancelar && <CancelarDialog id={cancelar} onFechar={() => setCancelar(null)} />}
       {aberta && (
         <ConsultaDrawer
           id={aberta}
           podeEditar={edita}
-          profissionais={profs.data ?? []}
+          profissionais={lista}
           onFechar={() => setAberta(null)}
         />
       )}
-    </div>
+      {novo && (
+        <NovaConsultaModal
+          profissionais={lista}
+          pacienteId={novo.pacienteId}
+          data={dia < hoje() ? hoje() : dia}
+          onFechar={() => setNovo(null)}
+        />
+      )}
+    </>
   );
 }
 
-interface ColunaProps {
-  status: StatusConsulta;
-  consultas: Consulta[];
+function ColunaQuadro({
+  coluna,
+  total,
+  edita,
+  mostrarDica,
+  children,
+}: {
+  coluna: (typeof COLUNAS)[number];
+  total: number;
   edita: boolean;
-  onAbrir: (id: string) => void;
-  onCancelar: (id: string) => void;
-  onMudar: (id: string, status: StatusMovel) => void;
-}
-
-function Coluna({ status, consultas, edita, onAbrir, onCancelar, onMudar }: ColunaProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: status, disabled: !edita });
+  mostrarDica: boolean;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: coluna.id, disabled: !edita });
   return (
     <section
       ref={setNodeRef}
-      className={`quadro-col ${isOver ? 'alvo' : ''}`}
-      aria-label={textoStatusConsulta(status)}
+      className={`q-col ${coluna.id} ${isOver && mostrarDica ? 'alvo' : ''}`}
+      aria-label={coluna.titulo}
     >
-      <header>
-        {textoStatusConsulta(status)}
-        <span className="badge">{consultas.length}</span>
-      </header>
-      <div className="quadro-lista">
-        {consultas.map((c) => (
-          <CartaoArrastavel
-            key={c.id}
-            c={c}
-            edita={edita}
-            onAbrir={onAbrir}
-            onCancelar={onCancelar}
-            onMudar={onMudar}
-          />
-        ))}
-        {consultas.length === 0 && <span className="muted">Vazio</span>}
+      <div className="q-cab">
+        <span className="ponto" style={{ background: coluna.ponto }} />
+        {coluna.titulo}
+        <span
+          className="n"
+          style={{
+            background: '#fff',
+            borderRadius: 999,
+            padding: '1px 9px',
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--ink-2)',
+          }}
+        >
+          {total}
+        </span>
       </div>
+      {children}
+      {mostrarDica && <div className="q-solte">{DICA[coluna.id]}</div>}
     </section>
   );
 }
 
-function CartaoArrastavel({
-  c,
-  edita,
-  onAbrir,
-  onCancelar,
-  onMudar,
-}: {
+interface CartaoProps {
   c: Consulta;
+  acento?: Acento;
   edita: boolean;
-  onAbrir: (id: string) => void;
-  onCancelar: (id: string) => void;
-  onMudar: (id: string, status: StatusMovel) => void;
-}) {
+  flutuante?: boolean;
+  verProntuario?: boolean;
+  podeReagendar?: boolean;
+  onAbrir?: (id: string) => void;
+  onMudar?: (id: string, status: StatusMovel) => void;
+  onReagendar?: (pacienteId: string) => void;
+}
+
+function CartaoArrastavel(props: CartaoProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: c.id,
-    disabled: !edita,
+    id: props.c.id,
+    disabled: !props.edita,
   });
   return (
     <div
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={isDragging ? 'cartao arrastando' : undefined}
-      style={{ touchAction: 'none' }}
       role="group"
       aria-roledescription="cartão arrastável"
+      style={{ touchAction: 'none', opacity: isDragging ? 0.4 : 1 }}
     >
-      <Cartao c={c} edita={edita} onAbrir={onAbrir} onCancelar={onCancelar} onMudar={onMudar} />
+      <Cartao {...props} />
     </div>
   );
 }
 
 function Cartao({
   c,
+  acento,
   edita,
   flutuante,
+  verProntuario,
+  podeReagendar,
   onAbrir,
-  onCancelar,
   onMudar,
-}: {
-  c: Consulta;
-  edita: boolean;
-  flutuante?: boolean;
-  onAbrir?: (id: string) => void;
-  onCancelar?: (id: string) => void;
-  onMudar?: (id: string, status: StatusMovel) => void;
-}) {
-  const proximo = PROXIMO[c.status] as StatusMovel | undefined;
+  onReagendar,
+}: CartaoProps) {
+  const parar = (e: React.PointerEvent) => e.stopPropagation();
+  const acao = {
+    alignSelf: 'flex-start',
+    display: 'inline-flex',
+    gap: 6,
+    alignItems: 'center',
+  } as const;
   return (
-    <article
-      className={`cartao ${flutuante ? 'cartao-flutuante' : ''}`}
-      style={{ ['--cor' as string]: c.profissional.cor_agenda }}
-    >
+    <article className={`q-card ${flutuante ? 'flutuante' : ''}`}>
       <div className="hora">
-        {fmtHora(c.inicio)} – {fmtHora(c.fim)}
+        <IconeRelogio tamanho={14} />
+        <span style={{ fontSize: 13 }}>{fmtHora(c.inicio)}</span>
+        <span className="q-prof" style={{ background: acento?.fundo, color: acento?.texto }}>
+          {c.profissional.nome}
+        </span>
       </div>
-      <strong>{c.paciente.nome}</strong>
-      <div className="muted">
-        {c.profissional.nome} · cad. {c.cadeira}
-        {c.procedimento_previsto ? ` · ${c.procedimento_previsto}` : ''}
-      </div>
-      {!flutuante && (
-        <div className="acoes" onPointerDown={(e) => e.stopPropagation()}>
-          <Button variante="ghost" pequeno onClick={() => onAbrir?.(c.id)}>
-            Detalhes
-          </Button>
-          {edita && proximo && (
-            <Button pequeno onClick={() => onMudar?.(c.id, proximo)}>
-              {ROTULO_ACAO[proximo]}
-            </Button>
+      {flutuante || !onAbrir ? (
+        <span style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.2 }}>{c.paciente.nome}</span>
+      ) : (
+        <button
+          type="button"
+          className="q-nome"
+          onPointerDown={parar}
+          onClick={() => onAbrir(c.id)}
+          aria-label={`Detalhes da consulta de ${c.paciente.nome}`}
+        >
+          {c.paciente.nome}
+        </button>
+      )}
+      <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>
+        {c.procedimento_previsto ?? 'Consulta'}
+      </span>
+
+      {c.status === 'chegou' && c.status_desde && (
+        <span className="badge b-warn" style={{ alignSelf: 'flex-start' }}>
+          <IconeRelogio tamanho={13} />
+          Aguardando há {fmtDecorrido(c.status_desde)}
+        </span>
+      )}
+      {c.status === 'em_atendimento' && c.status_desde && (
+        <span className="badge b-info" style={{ alignSelf: 'flex-start' }}>
+          <span className="pulse" />
+          Na cadeira · {fmtDecorrido(c.status_desde)}
+        </span>
+      )}
+      {c.status === 'cancelada' && c.motivo_cancelamento && (
+        <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>Motivo: {c.motivo_cancelamento}</span>
+      )}
+      {c.status === 'faltou' && podeReagendar && (
+        <button
+          type="button"
+          className="link-acao"
+          style={{ ...acao, color: 'var(--primary)' }}
+          onClick={() => onReagendar?.(c.paciente.id)}
+        >
+          <IconeReagendar tamanho={14} />
+          Reagendar
+        </button>
+      )}
+
+      {edita && !flutuante && (
+        <div onPointerDown={parar}>
+          {c.status === 'agendada' && (
+            <button type="button" className="btn xs" onClick={() => onMudar?.(c.id, 'confirmada')}>
+              <IconeWhatsapp tamanho={14} />
+              Confirmar
+            </button>
           )}
-          {edita && PODE_FALTAR.includes(c.status) && (
-            <Button variante="secondary" pequeno onClick={() => onMudar?.(c.id, 'faltou')}>
-              Faltou
-            </Button>
+          {c.status === 'confirmada' && (
+            <button type="button" className="btn xs sec" onClick={() => onMudar?.(c.id, 'chegou')}>
+              <IconeCheck tamanho={14} />
+              Marcar chegada
+            </button>
           )}
-          {edita && PODE_CANCELAR.includes(c.status) && (
-            <Button variante="secondary" pequeno onClick={() => onCancelar?.(c.id)}>
-              Cancelar
-            </Button>
+          {c.status === 'chegou' && (
+            <button
+              type="button"
+              className="btn xs pri"
+              style={{ width: '100%' }}
+              onClick={() => onMudar?.(c.id, 'em_atendimento')}
+            >
+              <IconeRaio tamanho={14} />
+              Chamar para a cadeira
+            </button>
+          )}
+          {c.status === 'em_atendimento' && (
+            <button type="button" className="btn xs" onClick={() => onMudar?.(c.id, 'concluida')}>
+              <IconeCheck tamanho={14} />
+              Finalizar
+            </button>
           )}
         </div>
+      )}
+      {verProntuario && !flutuante && c.status === 'em_atendimento' && (
+        <Link
+          to={`/clinica/prontuario/${c.paciente.id}`}
+          className="link-acao"
+          style={{ ...acao, gap: 4, color: 'var(--ink-2)' }}
+        >
+          Abrir prontuário
+          <IconeSetaDireita tamanho={14} />
+        </Link>
       )}
     </article>
   );

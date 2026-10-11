@@ -1,38 +1,34 @@
-import { fireEvent, render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { formaDoDente, nomeDoDente } from '../../lib/odonto';
 import { Dente } from './Dente';
 
-const clicarRegiao = (container: HTMLElement, face: string) => {
-  const alvo = [...container.querySelectorAll('polygon, rect')].find(
-    (el) => el.querySelector('title')?.textContent === face,
-  );
-  fireEvent.click(alvo!);
-};
-
-describe('desenho do dente', () => {
-  it('cada região clicável corresponde à face anatômica certa (46: mesial à direita, oclusal no centro)', () => {
-    const onFace = vi.fn();
-    const { container } = render(<Dente numero={46} estados={{}} onFace={onFace} />);
-    const titulos = [...container.querySelectorAll('title')].map((t) => t.textContent);
-    expect(titulos.sort()).toEqual(['D', 'L', 'M', 'O', 'V']);
-    clicarRegiao(container, 'M');
-    clicarRegiao(container, 'O');
-    expect(onFace.mock.calls.map((c) => c[0])).toEqual(['M', 'O']);
+describe('silhueta do dente', () => {
+  it('escolhe a forma pela posição (FDI), inclusive nos decíduos', () => {
+    expect([18, 16, 15, 14, 13, 12, 11].map(formaDoDente)).toEqual([
+      'molar',
+      'molar',
+      'premolar',
+      'premolar',
+      'canino',
+      'incisivo',
+      'canino',
+    ]);
+    expect([55, 54, 53, 52].map(formaDoDente)).toEqual(['molar', 'molar', 'canino', 'incisivo']);
   });
 
-  it('incisivo mostra a borda incisal no centro e pinta a face pelo estado', () => {
-    const { container } = render(
-      <Dente numero={11} estados={{ I: 'concluido', V: 'planejado' }} />,
-    );
-    const centro = container.querySelector('rect');
-    expect(centro?.querySelector('title')?.textContent).toBe('I');
-    expect(centro?.getAttribute('class')).toContain('face-concluido');
+  it('descreve o dente como na barra de seleção', () => {
+    expect(nomeDoDente(24)).toBe('pré-molar superior');
+    expect(nomeDoDente(46)).toBe('molar inferior');
+    expect(nomeDoDente(75)).toBe('molar decíduo inferior');
   });
 
-  it('sem onFace o desenho não é interativo', () => {
-    const { container } = render(<Dente numero={36} estados={{}} />);
-    expect(
-      [...container.querySelectorAll('polygon')].every((p) => !(p as SVGElement).style.cursor),
-    ).toBe(true);
+  it('superior é espelhado e a cor segue a situação', () => {
+    const sup = render(<Dente numero={24} situacao="planejado" />).container.querySelector('svg')!;
+    expect(sup.style.transform).toBe('scaleY(-1)');
+    expect(sup.querySelector('path')?.getAttribute('fill')).toBe('#E2EDFB');
+    const inf = render(<Dente numero={46} situacao={null} />).container.querySelector('svg')!;
+    expect(inf.style.transform).toBe('');
+    expect(inf.querySelector('path')?.getAttribute('fill')).toBe('#FFFFFF');
   });
 });

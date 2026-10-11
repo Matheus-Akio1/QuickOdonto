@@ -64,11 +64,15 @@ const pacienteSchema = z
   })
   .strict();
 
+// Filtros rápidos da lista (chips do protótipo).
+const FILTRO = z.enum(['consulta_hoje', 'sem_retorno', 'menores']);
+
 // A listagem por GET não aceita termo de busca: um CPF na query string acabaria em logs de
 // acesso/proxy (seção 3.2). A busca vai no corpo de POST /pacientes/buscar.
 const listaSchema = z
   .object({
     ativo: z.enum(['true', 'false', 'todos']).default('true'),
+    filtro: FILTRO.optional(),
     pagina: z.coerce.number().int().min(1).default(1),
     limite: z.coerce.number().int().min(1).max(100).default(20),
   })
@@ -78,6 +82,7 @@ const buscaSchema = z
   .object({
     busca: z.string().trim().min(1).max(100),
     ativo: z.enum(['true', 'false', 'todos']).default('true'),
+    filtro: FILTRO.optional(),
     pagina: z.number().int().min(1).default(1),
     limite: z.number().int().min(1).max(100).default(20),
   })
@@ -113,6 +118,7 @@ function idValido(req, res) {
  *     security: [{ cookieAuth: [] }]
  *     parameters:
  *       - { in: query, name: ativo, schema: { type: string, enum: ['true', 'false', todos], default: 'true' } }
+ *       - { in: query, name: filtro, schema: { type: string, enum: [consulta_hoje, sem_retorno, menores] } }
  *       - { in: query, name: pagina, schema: { type: integer, default: 1 } }
  *       - { in: query, name: limite, schema: { type: integer, default: 20, maximum: 100 } }
  *     responses:

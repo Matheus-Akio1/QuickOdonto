@@ -52,3 +52,48 @@ export function fmtDataHoraCompleta(iso: string | null | undefined): string {
   if (!iso) return '—';
   return fmtDataHora(iso);
 }
+
+const MESES = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+];
+
+/** "14 – 20 de setembro de 2026" (ou "28 de set. – 4 de out. de 2026" quando cruza o mês). */
+export function fmtPeriodo(inicio: string, fim: string): string {
+  const [ai, mi, di] = inicio.split('-').map(Number);
+  const [af, mf, df] = fim.split('-').map(Number);
+  if (ai === af && mi === mf) return `${di} – ${df} de ${MESES[mi - 1]} de ${ai}`;
+  return `${di} de ${MESES[mi - 1].slice(0, 3)}. – ${df} de ${MESES[mf - 1].slice(0, 3)}. de ${af}`;
+}
+
+/** "Quarta, 16 de setembro" */
+export function fmtDiaExtenso(data: string): string {
+  const [, m, d] = data.split('-').map(Number);
+  return `${nomeDiaLongo(data)}, ${d} de ${MESES[m - 1]}`;
+}
+
+/** Minutos desde 00:00 (Brasília) do instante atual. */
+export const agoraEmMinutos = (): number => minutosDoDia(new Date().toISOString());
+
+/** Tempo decorrido desde um instante: "6 min", "1h06". */
+export function fmtDecorrido(iso: string, agora = Date.now()): string {
+  const min = Math.max(0, Math.floor((agora - new Date(iso).getTime()) / 60000));
+  if (min < 60) return `${min} min`;
+  return `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`;
+}
+
+/** Duração em minutos por extenso curto: "30 min", "2 h", "1 h 30". */
+export function fmtDuracao(min: number): string {
+  if (min < 60) return `${min} min`;
+  return min % 60 ? `${Math.floor(min / 60)} h ${min % 60}` : `${min / 60} h`;
+}

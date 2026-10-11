@@ -37,3 +37,11 @@
 ## 9. Validar com dados realistas
 - Nome de arquivo acentuado, imagem real, várias linhas num formulário: foi isso que revelou os bugs do M4 (UTF-8 no upload, ordem dos itens, odontograma cortado). Os testes automatizados usavam dados "limpos" demais.
 
+## 10. Protótipo: consultar ANTES de construir qualquer tela, e validar DEPOIS
+- **O que houve:** o front do M1, M2 e M4 foi construído sem olhar o protótipo. Procurei só nos arquivos do projeto, concluí "não está no repositório" e segui com cores e layout inventados. O protótipo existia o tempo todo como canvas de design na conta do usuário no claude.ai ("QuickOdonto — telas melhoradas", 35 pranchas, com o sistema visual). O usuário só percebeu quando pediu para rever as telas.
+- **Regra — onde procurar:** quando um documento do projeto cita um insumo (protótipo, URS, planilha) que não está no repositório, procurar também fora dele antes de assumir que não existe: artefatos da conta (`Artifact list`), sessões anteriores, e, se ainda assim não achar, PERGUNTAR ao usuário onde está. Nunca substituir um insumo ausente por invenção sem avisar e sem perguntar.
+- **Regra — antes de codar uma tela:** ler a prancha correspondente no canvas vigente (`project/<Tela>.dc.html`) e o sistema visual (`project/Sistema.dc.html`). Anotar no `tasks/todo.md` qual prancha serve de referência para cada tela.
+- **Regra — validação obrigatória para marcar `[x]` em tela (seção 6.2):** comparar a tela construída com a prancha, lado a lado, e listar as diferenças: estrutura (blocos, ordem, colunas), textos e rótulos, cores e tipografia do sistema visual, estados (vazio, erro, carregando) e versão mobile. Só marca `[x]` com a comparação feita; divergência proposital fica escrita na linha do checklist com o motivo.
+- **Regra — fonte da verdade:** o canvas vigente é "QuickOdonto — telas melhoradas" (confirmado pelo usuário em 11/10/2026). O checklist descreve O QUE existe; o protótipo define COMO aparece. Se os dois divergirem, apontar ao usuário em vez de escolher sozinho.
+- **Regra — só leitura:** não publicar nem alterar nada nos canvases do protótipo sem pedido explícito.
+
