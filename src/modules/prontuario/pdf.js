@@ -4,6 +4,7 @@ const { mascararCpf } = require('../../lib/mascara');
 const { decifrar } = require('../../lib/crypto');
 const prontuario = require('./prontuario.service');
 const procedimentos = require('./procedimentos.service');
+const anexos = require('./anexos.service');
 
 const fmt = (d) =>
   new Intl.DateTimeFormat('pt-BR', {
@@ -12,6 +13,12 @@ const fmt = (d) =>
     timeStyle: 'short',
   }).format(new Date(d));
 const fmtData = (d) => (d ? d.split('-').reverse().join('/') : '—');
+const TIPO_ALERTA = {
+  alergia: 'Alergia',
+  medicamento: 'Medicamento',
+  condicao: 'Condição',
+  outro: 'Outro',
+};
 const STATUS = {
   planejado: 'Planejado',
   em_andamento: 'Em andamento',
@@ -62,7 +69,8 @@ async function gerarPdfProntuario(pacienteId, emitidoPor) {
 
   secao('Alertas clínicos');
   if (!resumo.alertas?.length) doc.text('Nenhum alerta registrado.');
-  for (const a of resumo.alertas ?? []) doc.text(`• ${a.tipo}: ${a.descricao}`);
+  for (const a of resumo.alertas ?? [])
+    doc.text(`• ${TIPO_ALERTA[a.tipo] ?? a.tipo}: ${a.descricao}`);
 
   secao('Anamnese atual');
   if (!anamnese) doc.text('Nenhuma anamnese registrada.');
@@ -110,6 +118,16 @@ async function gerarPdfProntuario(pacienteId, emitidoPor) {
         .text(`   Adendo ${fmt(a.criado_em)}: ${a.conteudo}`)
         .fillColor('#000');
   }
+
+  secao('Anexos');
+  const listaAnexos = await anexos.listar(pacienteId);
+  if (!listaAnexos.length) doc.text('Nenhum anexo.');
+  for (const a of listaAnexos) doc.text(`${fmt(a.criado_em)} · ${a.tipo} · ${a.nome}`);
+  doc
+    .fontSize(8)
+    .fillColor('#555')
+    .moveDown(0.3)
+    .text('Os arquivos não são incorporados a este documento; consulte-os no sistema.');
 
   doc.end();
   return fim;

@@ -17,3 +17,23 @@
 - `openapi-fetch` captura o `fetch` global ao importar: para testar o cliente, usar `vi.stubGlobal('fetch')` **antes** de importar (`vi.resetModules()` + `import()` dinâmico); para testar componentes, mockar o módulo `api/client`.
 - No Node a base `/api/v1` é relativa e não vira `Request`: `src/test/setup.ts` define `VITE_API_URL` absoluta.
 - Dependência nova do front: o `Dockerfile` precisa copiar o `.npmrc` (`legacy-peer-deps`) antes do `npm install`, e o container sobe com `docker compose up -d --build -V --force-recreate web`.
+
+## 4. O `assert` nos scripts de edição funciona — manter
+- Na retomada do M4, dois `replace` não casaram por causa da formatação do Prettier; o `assert` parou o script e nada foi aplicado pela metade. Continua valendo a regra 1.
+
+## 5. Uploads: nome de arquivo em UTF-8
+- O multer decodifica o nome do arquivo como latin1 por padrão (`"ção"` → `"Ã§Ã£o"`). Sempre configurar `defParamCharset: 'utf8'` e testar com nome acentuado. Só apareceu no fluxo real com arquivo de verdade.
+
+## 6. Ambiente: Docker travado
+- Docker Desktop em "unable to start": olhar `df -h /System/Volumes/Data` primeiro (disco cheio derrubou o daemon). Depois de liberar espaço, o `com.docker.backend` antigo fica pendurado: encerrar o processo e reabrir o app. No macOS não há `timeout`; usar `perl -e 'alarm N; exec @ARGV' comando`.
+- Limpezas de espaço podem apagar o volume do Postgres de dev: depois de retomar, conferir se as migrations rodaram "do zero" e rodar o seed.
+
+## 7. Layout: `justify-content: center` em conteúdo que transborda corta o início
+- No odontograma, os dentes 18/48 ficaram inalcançáveis pela rolagem. Para centralizar algo que pode transbordar: `width: max-content; margin: 0 auto` dentro do contêiner com `overflow-x: auto`. Em grid de uma coluna, usar `minmax(0, 1fr)` (o `1fr` cresce até a largura mínima do conteúdo e empurra a página).
+
+## 8. `now()` é fixo dentro da transação
+- Itens inseridos na mesma transação recebiam o mesmo `criado_em` e voltavam em ordem aleatória (desempate por UUID). Quando a ordem de inserção importa, gravar `clock_timestamp()` (ou uma coluna de ordem explícita) e ter teste de ordem.
+
+## 9. Validar com dados realistas
+- Nome de arquivo acentuado, imagem real, várias linhas num formulário: foi isso que revelou os bugs do M4 (UTF-8 no upload, ordem dos itens, odontograma cortado). Os testes automatizados usavam dados "limpos" demais.
+

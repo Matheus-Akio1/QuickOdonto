@@ -20,6 +20,7 @@ const MENUS: Record<Perfil, ItemMenu[]> = {
     { rota: '/agenda', rotulo: 'Agenda', icone: 'agenda' },
     { rota: '/agenda/quadro', rotulo: 'Quadro do dia', icone: 'quadro' },
     { rota: '/pacientes', rotulo: 'Pacientes', icone: 'pacientes' },
+    { rota: '/clinica/procedimentos', rotulo: 'Procedimentos', icone: 'dente' },
   ],
   adm_clinica: [{ rota: '/admin/clinica', rotulo: 'Equipe e auditoria', icone: 'usuarios' }],
   laboratorio: [{ rota: '/lab', rotulo: 'Laboratório', icone: 'dente' }],
@@ -38,4 +39,6 @@ export const NOME_PERFIL: Record<Perfil, string> = {
 };
 
 export const podeCadastrarPaciente = (p: Perfil) => p === 'secretaria';
+/** O prontuário (conteúdo clínico) é só do dentista; a API devolve 403 aos demais. */
+export const podeVerProntuario = (p: Perfil) => p === 'clinica';
 export const podeAgendar = (p: Perfil) => p === 'secretaria';

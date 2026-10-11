@@ -72,14 +72,14 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [x] `bloqueios_agenda` (profissional_id, inicio, fim, motivo) — migration aplicada; `profissional_id` nulo = clínica toda; recusa bloqueio sobre consulta existente
 
 **Prontuário clínico**
-- [ ] `anamneses` (paciente_id, versao, respostas jsonb, alertas jsonb, profissional_id, assinada_em) — versão nova nunca sobrescreve a anterior (RF-CLI-003)
-- [ ] `evolucoes` (paciente_id, conteudo, profissional_id) — sem DELETE
-- [ ] `adendos` (evolucao_id, conteudo, profissional_id)
-- [ ] `anexos` (paciente_id | os_id, tipo, nome, mime, tamanho, caminho)
-- [ ] `acessos_prontuario` (paciente_id, usuario_id, em) — RF-CLI-015
-- [ ] `procedimentos_catalogo` (codigo, nome, especialidade, duracao_min, valor_padrao, ativo)
-- [ ] `procedimentos_paciente` (paciente_id, catalogo_id, dente, faces, status, profissional_id, data, valor)
-- [ ] `planos_tratamento` + `plano_itens` (orçamento aprovado gera contas a receber)
+- [x] `anamneses` (paciente_id, versao, respostas jsonb, alertas jsonb, profissional_id, assinada_em) — versão nova nunca sobrescreve a anterior (RF-CLI-003) — respostas e alertas CIFRADOS; versão nova via transação com trava; trigger só aceita assinar (NULL → data); testado inclusive com UPDATE/DELETE direto no banco
+- [x] `evolucoes` (paciente_id, conteudo, profissional_id) — sem DELETE — conteúdo CIFRADO; sem rota de edição/exclusão e trigger recusa UPDATE/DELETE
+- [x] `adendos` (evolucao_id, conteudo, profissional_id) — CIFRADO e imutável; o texto original da evolução permanece
+- [x] `anexos` (paciente_id | os_id, tipo, nome, mime, tamanho, caminho) — arquivo cifrado em `STORAGE_DIR` (volume `anexos_data`), banco só com metadados; `os_id` sem FK até o M3; imutável
+- [x] `acessos_prontuario` (paciente_id, usuario_id, em) — RF-CLI-015 — gravado ANTES de responder em toda leitura clínica (se falhar, a leitura falha); imutável; provado em dev: 6 registros do fluxo real
+- [x] `procedimentos_catalogo` (codigo, nome, especialidade, duracao_min, valor_padrao, ativo) — código único; seed com 12 itens
+- [x] `procedimentos_paciente` (paciente_id, catalogo_id, dente, faces, status, profissional_id, data, valor) — dente FDI validado, faces V/L/M/D/O/I (CHECK no banco), status planejado → em_andamento → concluído/cancelado; fechado só aceita adendo (`procedimento_adendos`, cifrado) — trigger no banco
+- [ ] `planos_tratamento` + `plano_itens` (orçamento aprovado gera contas a receber) — total calculado no servidor; aprovar lança os itens como procedimentos planejados. PENDENTE: gerar contas a receber (M6)
 
 **Ordens de serviço**
 - [ ] `ordens_servico` (numero, origem `propria|externa`, cliente_id, paciente_id ou nome, dentista, tipo_trabalho, elementos, cor, material, enviado_em, previsao_entrega, valor, etapa, tecnico_id, status, motivo_cancelamento)
@@ -108,7 +108,7 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [ ] Constraint de unicidade: CPF do paciente, e-mail do usuário, número da OS — a unicidade do CPF usa a coluna de hash (3.1), não o valor em claro — CPF do paciente (via `cpf_hash`) e e-mail do usuário prontos; falta número da OS (M3)
 - [ ] Marcar no schema quais colunas são criptografadas e quais são hash de busca, para ninguém criar índice ou relatório sobre o valor em claro — `COMMENT ON COLUMN` nas colunas cifradas/hash (migration `…0002_comentarios_classificacao`); vale manter para toda tabela nova
 - [ ] `init.sql` do bootstrap → migrar para **migrations** (Knex ou Prisma) antes do primeiro deploy
-- [ ] Seed de desenvolvimento: 2 profissionais, 8 pacientes, 4 clientes de laboratório, catálogo de procedimentos, produtos de estoque — `seeds/02_clinica_dev.js` cria 2 profissionais com jornada e 8 pacientes (CPF cifrado); faltam clientes de laboratório, catálogo e produtos (M3/M4/M5)
+- [ ] Seed de desenvolvimento: 2 profissionais, 8 pacientes, 4 clientes de laboratório, catálogo de procedimentos, produtos de estoque — `seeds/02_clinica_dev.js` cria 2 profissionais com jornada e 8 pacientes (CPF cifrado); faltam clientes de laboratório, catálogo e produtos (M3/M4/M5) — `02_clinica_dev.js` (2 profissionais, 8 pacientes) e `03_catalogo_dev.js` (12 procedimentos); faltam clientes de laboratório e produtos (M3/M5)
 - [ ] Backup: `pg_dump` agendado (diário, retenção 30 dias) + teste de restauração
 
 ---
@@ -126,8 +126,8 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [x] Sessão expira em 30 min de inatividade — teste: `ultimo_uso` retroagido 31 min → refresh recusado (access token dura 15 min)
 - [ ] 2FA para perfis administradores (TOTP) — *Desejável*
 - [x] Middleware de auditoria gravando antes/depois em toda escrita (RF-GER-009) — `middleware/auditoria.js`: o handler preenche `res.locals.auditoria` e a trilha grava no `finish` só em sucesso; remove campos senha/token/hash; aplicado em `/usuarios` e `/perfis`. Todo módulo novo de escrita deve usar
-- [ ] Registro de acesso ao prontuário em toda leitura (RF-CLI-015)
-- [ ] Upload de anexos: validação de mime/tamanho (50 MB), nomes sanitizados, fora do diretório público
+- [x] Registro de acesso ao prontuário em toda leitura (RF-CLI-015) — prontuário, anamneses, anamnese, evoluções, procedimentos, odontograma, planos, anexos, link de anexo, download e PDF; testado (inclui: leitura negada/404 não entra na trilha)
+- [x] Upload de anexos: validação de mime/tamanho (50 MB), nomes sanitizados, fora do diretório público — tipo real conferido pela assinatura binária (JPG/PNG/WEBP/PDF) e comparado ao declarado (415 se divergir); 50 MB (413); nome sanitizado e em UTF-8; cifrado antes de tocar o disco; fora de diretório público; download por link de uso único de 60 s. Provado com imagem real: hash idêntico no download, disco começa com `QOA1`
 - [x] Testes dos dois caminhos de cada middleware: **permitido** e **bloqueado** (obrigatório para marcar `[x]`) — `auth`, `permitirPerfis`, `escopoUnidade`, `csrf`, rate limit e auditoria testados nos caminhos permitido e bloqueado (31 testes verdes)
 
 ### 3.1 Criptografia de dados sensíveis
@@ -157,13 +157,13 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [ ] TLS 1.2+ obrigatório; HSTS ligado; redirecionamento de HTTP para HTTPS
 - [ ] Disco/volume do banco com criptografia em repouso
 - [ ] Backups criptografados, com a chave guardada **separada** do backup
-- [ ] Criptografia por campo aplicada exatamente às colunas da tabela acima — nada além disso sem decisão registrada — `lib/crypto.js` (AES-256-GCM, formato `v1:` para rotação) aplicado a `cpf` e `observacoes` de pacientes; RG/CNPJ entram com os clientes do laboratório (M3) e texto clínico no M4
+- [ ] Criptografia por campo aplicada exatamente às colunas da tabela acima — nada além disso sem decisão registrada — `lib/crypto.js` (AES-256-GCM, formato `v1:` para rotação) aplicado a `cpf` e `observacoes` de pacientes; RG/CNPJ entram com os clientes do laboratório (M3) e texto clínico no M4 — pacientes (CPF, observações) e todo texto clínico do M4 cifrados; dump completo do banco de dev sem nenhuma ocorrência do texto clínico de teste. Faltam RG/CNPJ dos clientes do laboratório (M3)
 - [x] Coluna de hash (HMAC) para CPF e e-mail, usada em busca e unicidade — CPF: `cpf_hash` (HMAC-SHA256, `HMAC_KEY` própria) usado na busca exata e na unicidade, testado. E-mail: decisão registrada — fica em claro (tabela 3.1) e a unicidade do usuário é por índice único, então não há hash de e-mail
 - [x] Chave de criptografia fora do banco e fora do repositório (variável de ambiente com permissão restrita ou KMS) — `ENC_KEY`/`HMAC_KEY` só no `.env` (ignorado pelo git, confirmado com `git check-ignore`); `.env.example` sem valores. Em produção virar variável com permissão restrita ou KMS
 - [ ] **Custódia da chave:** cópia em cofre de senhas da clínica **e** cópia offline guardada fisicamente; procedimento escrito de quem tem acesso
 - [ ] Rotação de chave documentada, com script de recriptografia testado antes de precisar dele
 - [x] Mascaramento na tela por padrão (CPF, telefone, documentos); revelar o valor completo exige permissão e fica na auditoria — API devolve CPF e celulares mascarados (`***.***.***-25`, `(11) *****-4321`); `GET /pacientes/:id/revelar/:campo` exige perfil e grava `revelar_cpf` etc. na auditoria — provado em teste, sem o valor na trilha. Falta o lado do front (M2 web)
-- [x] Logs, auditoria e mensagens de erro nunca gravam senha, token, dado clínico ou documento completo — auditoria higieniza e usa a versão mascarada do paciente; testes conferem que CPF e celular completos não aparecem na trilha; logs da API conferidos sem CPF
+- [x] Logs, auditoria e mensagens de erro nunca gravam senha, token, dado clínico ou documento completo — auditoria higieniza e usa a versão mascarada do paciente; testes conferem que CPF e celular completos não aparecem na trilha; logs da API conferidos sem CPF — auditoria do M4 guarda só metadados (ids, versão, tamanho do texto); logs da API conferidos sem texto clínico nem CPF
 - [ ] **Teste trimestral de restauração:** restaurar o backup num ambiente limpo e abrir um prontuário cifrado, provando que backup e chave funcionam juntos
 - [ ] Dado em claro é compensado por acesso restrito: perfil, registro de quem abriu cada prontuário e revisão periódica de quem tem acesso
 
@@ -177,8 +177,8 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [ ] Autorização verificada no servidor em **toda** rota (negar por padrão); chamar a rota direto, fora da tela, retorna 403
 - [x] Nenhum segredo, chave de terceiros ou credencial no bundle do front (nem em variáveis `VITE_*`): só a URL da API e flags públicas — bundle de produção inspecionado (0 ocorrências)
 - [ ] O front nunca fala direto com banco, storage ou serviço de terceiros com credencial — tudo passa pelo backend
-- [ ] Nada sensível em URL, query string ou fragmento; `Cache-Control: no-store` nas respostas com dado clínico ou financeiro — `no-store` já está em pacientes, consultas e `/auth/me`; PENDENTE: a busca de paciente manda o termo (que pode ser um CPF completo) em `GET /pacientes?busca=`, que pode ficar em log de acesso/proxy. Trocar por `POST /pacientes/buscar` antes do deploy
-- [ ] PDFs, recibos e exportações gerados no backend e entregues por URL assinada — o front não monta documento com dado sensível
+- [x] Nada sensível em URL, query string ou fragmento; `Cache-Control: no-store` nas respostas com dado clínico ou financeiro — `no-store` já está em pacientes, consultas e `/auth/me`; PENDENTE: a busca de paciente manda o termo (que pode ser um CPF completo) em `GET /pacientes?busca=`, que pode ficar em log de acesso/proxy. Trocar por `POST /pacientes/buscar` antes do deploy — busca de paciente agora é `POST /pacientes/buscar` e `GET ?busca=` responde 400 (testado). Exceções por desenho: tokens de uso único em links de download e de redefinição de senha
+- [ ] PDFs, recibos e exportações gerados no backend e entregues por URL assinada — o front não monta documento com dado sensível — PDF do prontuário gerado no servidor (pdfkit) e entregue por link de uso único de 60 s (testado e conferido visualmente). PENDENTE: exportação xlsx de pacientes ainda sai direto na resposta autenticada; recibos no M6
 - [x] Logout e expiração de sessão limpam o estado em memória do front e invalidam a sessão no servidor — provado: após sair, `/auth/me` = 401 e o cache de consultas é descartado; expiração dispara o mesmo caminho e avisa na tela de login
 
 ---
@@ -323,7 +323,7 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 - [ ] RN-003 "Envio" exige laboratório e data prevista
 - [ ] RN-004 OS atrasada = previsão < hoje e não concluída
 - [ ] RN-005 Retirada não deixa saldo negativo
-- [ ] RN-006 Sem exclusão de registro clínico; correção por adendo
+- [x] RN-006 Sem exclusão de registro clínico; correção por adendo — garantido por trigger no Postgres (evolução, adendo, anexo, trilha de acesso, anamnese, procedimento fechado, plano) e testado com UPDATE/DELETE direto no banco
 - [ ] RN-007 Secretaria, Clínica e Laboratório não acessam financeiro
 - [ ] RN-008 Estoque e financeiro separados por unidade
 - [x] RN-009 Paciente com histórico só é inativado — `DELETE /pacientes/:id` inativa se houver consulta e exclui se não houver; `temHistorico()` é o ponto único a estender nos M3/M4
@@ -355,7 +355,7 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 - [ ] Layout com menu lateral por perfil, barra superior, busca e notificações — menu lateral por perfil (barra inferior no celular), barra superior e notificações com contador; falta a busca global
 - [ ] Quadro Kanban reutilizável com arrastar e soltar (dnd-kit) — agenda, OS da clínica e produção do laboratório — quadro do dia funcionando com `dnd-kit` (arrastar Confirmada → Chegou provado no navegador) e botões por teclado; ainda não extraído como componente genérico para as OS (M3)
 - [x] Componente de calendário semanal (grade de horários, filtro por profissional, bloqueios hachurados) — grade semana/dia com filtro por profissional, eventos lado a lado quando sobrepostos, jornada e bloqueios hachurados — verificado no navegador; falta a visão de mês
-- [ ] Odontograma interativo (seleção por dente e face)
+- [x] Odontograma interativo (seleção por dente e face) — FDI permanente/decídua na vista do dentista, mesial apontando para a linha média; faces clicáveis no desenho + caixas equivalentes (teclado/leitor de tela); cor por situação; testado (geometria das faces) e usado no navegador
 - [ ] Gráficos (Recharts) para financeiro e relatórios
 - [ ] Máscaras: CPF, CNPJ, telefone, CEP, moeda (pt-BR) — CPF, celular e CEP prontos e testados; CNPJ e moeda entram com M3/M6
 - [ ] Acessibilidade: foco visível, rótulos reais, contraste 4.5:1, alvo de toque ≥44px — contraste medido nos 23 pares de cor dos tokens: todos ≥ 4,5:1 (mínimo 4,56); rótulos reais ligados por `aria-*`, foco preso em modal/drawer e Esc fecha (testado), alvos ≥ 44 px; ressalva: a cor do profissional é livre e pode ficar abaixo do contraste com texto branco; falta teste com leitor de tela
@@ -371,9 +371,9 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 | [x] `/agenda` | Semana (dia/mês na mesma tela) *(semana e dia; falta a visão de mês e a tela de bloqueios (a API existe))* | S |
 | [x] `/agenda/quadro` | Quadro do dia por status | S |
 | [ ] `/ordens-servico` | Kanban de OS | S |
-| [ ] `/clinica/prontuario/:id` | Prontuário, odontograma, linha do tempo | C |
-| [ ] `/clinica/anamnese/:id` | Anamnese versionada + assinatura | C |
-| [ ] `/clinica/procedimentos` | Registro + catálogo | C |
+| [x] `/clinica/prontuario/:id` | Prontuário, odontograma, linha do tempo *(alertas em destaque, linha do tempo, evoluções/adendos, odontograma, plano, anexos (envio e prévia por link de uso único), acessos e PDF — fluxo percorrido no navegador)* | C |
+| [x] `/clinica/anamnese/:id` | Anamnese versionada + assinatura *(versões, nova versão a partir da anterior, alertas, assinatura com confirmação)* | C |
+| [x] `/clinica/procedimentos` | Registro + catálogo *(catálogo (também como aba em `/admin/clinica`); o registro por dente fica no prontuário)* | C |
 | [ ] `/lab/producao` | Kanban de produção | L |
 | [ ] `/lab/estoque` | Estoque + retirada vinculada à OS | L |
 | [ ] `/lab/clientes` | Clientes do laboratório | L |

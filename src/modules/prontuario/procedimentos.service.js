@@ -264,7 +264,7 @@ async function buscarPlano(id) {
   const itens = await query(
     `SELECT i.id, i.dente, i.faces, i.valor, i.procedimento_id, c.id AS catalogo_id, c.codigo, c.nome
        FROM plano_itens i JOIN procedimentos_catalogo c ON c.id = i.catalogo_id
-      WHERE i.plano_id = $1 ORDER BY i.criado_em, i.id`,
+      WHERE i.plano_id = $1 ORDER BY i.criado_em, i.id`, // ordem de digitação (criado_em via clock_timestamp)
     [id],
   );
   const p = rows[0];
@@ -328,7 +328,7 @@ async function criarPlano({ paciente_id, observacao, itens }, usuarioId, profiss
     );
     for (const [n, i] of itens.entries()) {
       await c.query(
-        'INSERT INTO plano_itens (plano_id, catalogo_id, dente, faces, valor) VALUES ($1,$2,$3,$4,$5)',
+        'INSERT INTO plano_itens (plano_id, catalogo_id, dente, faces, valor, criado_em) VALUES ($1,$2,$3,$4,$5, clock_timestamp())',
         [rows[0].id, i.catalogo_id, i.dente ?? null, i.faces ?? [], valores[n].toFixed(2)],
       );
     }

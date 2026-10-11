@@ -15,6 +15,8 @@ const TIPOS = ['radiografia', 'foto', 'documento', 'escaneamento', 'outro'];
 // Arquivo fica só em memória até ser validado e cifrado; nunca toca o disco em claro.
 const upload = multer({
   storage: multer.memoryStorage(),
+  // Nomes de arquivo em UTF-8 (o padrão latin1 corrompe acentos: "ção" → "Ã§Ã£o").
+  defParamCharset: 'utf8',
   limits: { fileSize: TAMANHO_MAXIMO, files: 1, fields: 5 },
 });
 
@@ -184,7 +186,8 @@ arquivos.get('/:token', async (req, res, next) => {
     res.set({
       'Content-Type': mime,
       'Content-Length': dados.length,
-      'Content-Disposition': `${link.tipo === 'anexo' ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(nome)}`,
+      // Só imagem abre inline (pré-visualização); PDF baixa — o CSP sandbox bloqueia o leitor de PDF do navegador.
+      'Content-Disposition': `${mime.startsWith('image/') ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(nome)}`,
       'Cache-Control': 'no-store, private',
       'X-Content-Type-Options': 'nosniff',
       'Content-Security-Policy':

@@ -413,6 +413,7 @@ describe('planos de tratamento', () => {
     });
     expect(r.status).toBe(201);
     expect(r.body).toMatchObject({ status: 'rascunho', total: 300, observacao: 'Priorizar dor' });
+    expect(r.body.itens.map((i) => i.catalogo.codigo)).toEqual(['T-REST', 'T-AVAL']);
     expect((await sec.post(`/planos-tratamento/${r.body.id}/aprovar`)).status).toBe(403);
 
     const ap = await admc.post(`/planos-tratamento/${r.body.id}/aprovar`);
@@ -475,6 +476,15 @@ describe('anexos cifrados e links de uso único', () => {
     expect(disco.includes(Buffer.from('IHDR-dados-de-teste'))).toBe(false);
   });
 
+  test('nome com acentos é preservado em UTF-8', async () => {
+    const r = await enviar(clin, PNG, {
+      filename: 'radiografia panorâmica — São João.png',
+      contentType: 'image/png',
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.nome).toBe('radiografia panorâmica — São João.png');
+  });
+
   test('recusa tipo não aceito e conteúdo que não bate com o tipo declarado', async () => {
     expect(
       (
@@ -510,12 +520,17 @@ describe('anexos cifrados e links de uso único', () => {
       });
     expect(baixa.status).toBe(200);
     expect(baixa.headers['content-type']).toBe('image/png');
+    expect(baixa.headers['content-disposition']).toMatch(/^inline/);
     expect(baixa.headers['cache-control']).toMatch(/no-store/);
     expect(Buffer.compare(baixa.body, PNG)).toBe(0);
     expect((await request(app).get(meta.body.url)).status).toBe(404);
   });
 
   test('link expirado não funciona; resgates entram na trilha de acesso', async () => {
+    const lista = await clin.get(`/pacientes/${pac}/anexos`);
+    expect(lista.status).toBe(200);
+    expect(lista.body.map((a) => a.id)).toContain(anexo);
+    expect(JSON.stringify(lista.body)).not.toMatch(/caminho|\.enc/);
     const meta = await clin.get(`/anexos/${anexo}`);
     await query(
       "UPDATE links_download SET expira_em = now() - interval '1 second' WHERE usado_em IS NULL",

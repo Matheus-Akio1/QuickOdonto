@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, chamar, mensagemDeErro } from '../../api/client';
 import type { Profissional } from '../../api/types';
+import { podeVerProntuario } from '../../auth/permissoes';
+import { useAuth } from '../../auth/useAuth';
 import { Button } from '../../components/Button';
 import { Campo } from '../../components/Campo';
 import { Carregando, ErroCarga } from '../../components/Feedback';
@@ -31,6 +33,7 @@ interface Props {
 
 export function ConsultaDrawer({ id, podeEditar, profissionais, onFechar }: Props) {
   const { avisar } = useToast();
+  const { usuario } = useAuth();
   const [cancelando, setCancelando] = useState(false);
   const [reagendando, setReagendando] = useState(false);
   const mudar = useMudarStatus();
@@ -77,6 +80,11 @@ export function ConsultaDrawer({ id, podeEditar, profissionais, onFechar }: Prop
             </h3>
             <StatusConsulta status={c.status} />
           </div>
+          {usuario && podeVerProntuario(usuario.perfil) && (
+            <Link className="btn btn-secondary" to={`/clinica/prontuario/${c.paciente.id}`}>
+              Abrir prontuário
+            </Link>
+          )}
           <dl className="dl">
             <dt>Quando</dt>
             <dd>

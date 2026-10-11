@@ -20,6 +20,15 @@ const QuadroPage = lazy(() =>
 const AdminPage = lazy(() =>
   import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })),
 );
+const ProntuarioPage = lazy(() =>
+  import('./pages/clinica/ProntuarioPage').then((m) => ({ default: m.ProntuarioPage })),
+);
+const AnamnesePage = lazy(() =>
+  import('./pages/clinica/AnamnesePage').then((m) => ({ default: m.AnamnesePage })),
+);
+const CatalogoPage = lazy(() =>
+  import('./pages/clinica/CatalogoPage').then((m) => ({ default: m.CatalogoPage })),
+);
 const FichaPage = lazy(() =>
   import('./pages/pacientes/FichaPage').then((m) => ({ default: m.FichaPage })),
 );
@@ -45,6 +54,11 @@ export function App() {
               <Route path="/agenda/quadro" element={<QuadroPage />} />
               <Route path="/pacientes" element={<PacientesPage />} />
               <Route path="/pacientes/:id" element={<FichaPage />} />
+            </Route>
+            <Route element={<RotaProtegida perfis={['clinica']} />}>
+              <Route path="/clinica/prontuario/:id" element={<ProntuarioPage />} />
+              <Route path="/clinica/anamnese/:id" element={<AnamnesePage />} />
+              <Route path="/clinica/procedimentos" element={<CatalogoPage />} />
             </Route>
             <Route element={<RotaProtegida perfis={['adm_clinica']} />}>
               <Route path="/admin/clinica" element={<AdminPage unidade="clinica" />} />

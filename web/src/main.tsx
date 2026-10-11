@@ -13,6 +13,7 @@ import './styles/base.css';
 import './styles/ui.css';
 import './styles/layout.css';
 import './styles/agenda.css';
+import './styles/clinica.css';
 
 // Mensagens de validação dos formulários em português.
 z.config(z.locales.ptBR());
