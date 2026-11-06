@@ -79,24 +79,24 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [x] `acessos_prontuario` (paciente_id, usuario_id, em) — RF-CLI-015 — gravado ANTES de responder em toda leitura clínica (se falhar, a leitura falha); imutável; provado em dev: 6 registros do fluxo real
 - [x] `procedimentos_catalogo` (codigo, nome, especialidade, duracao_min, valor_padrao, ativo) — código único; seed com 12 itens
 - [x] `procedimentos_paciente` (paciente_id, catalogo_id, dente, faces, status, profissional_id, data, valor) — dente FDI validado, faces V/L/M/D/O/I (CHECK no banco), status planejado → em_andamento → concluído/cancelado; fechado só aceita adendo (`procedimento_adendos`, cifrado) — trigger no banco
-- [ ] `planos_tratamento` + `plano_itens` (orçamento aprovado gera contas a receber) — total calculado no servidor; aprovar lança os itens como procedimentos planejados. PENDENTE: gerar contas a receber (M6)
+- [ ] `planos_tratamento` + `plano_itens` (orçamento aprovado gera contas a receber) — total calculado no servidor; aprovar lança os itens como procedimentos planejados. PENDENTE: gerar contas a receber (M6) — FEITO no M6: aprovar o plano cria um título a receber da clínica pelo total (testado). Item completo: marcar quando revisar a seção
 
 **Ordens de serviço**
-- [ ] `ordens_servico` (numero, origem `propria|externa`, cliente_id, paciente_id ou nome, dentista, tipo_trabalho, elementos, cor, material, enviado_em, previsao_entrega, valor, etapa, tecnico_id, status, motivo_cancelamento)
-- [ ] `os_historico` (os_id, de_etapa, para_etapa, usuario_id, em, observacao)
-- [ ] `os_provas` e `os_refacoes` (os_id, numero, motivo, data)
-- [ ] `laboratorio_clientes` (tipo interno/externo, razão social, cnpj_cpf, responsável, cro, contatos, endereço, condição de pagamento, ativo)
-- [ ] `tabela_precos` (tipo_trabalho, cliente_id nulo = padrão, valor, vigência)
+- [x] `ordens_servico` (numero, origem `propria|externa`, cliente_id, paciente_id ou nome, dentista, tipo_trabalho, elementos, cor, material, enviado_em, previsao_entrega, valor, etapa, tecnico_id, status, motivo_cancelamento) — migration `20261011000001_ordens_servico`; duas etapas por OS: `etapa` (quadro da clínica) e `etapa_producao` (laboratório); numeração `OS-0001` (clínica) e `L-0001` (externa) por sequence, única; observações CIFRADAS; CHECKs de origem/paciente, RN-003 e cancelamento com motivo; OS nunca é excluída (trigger) — só cancelada
+- [x] `os_historico` (os_id, de_etapa, para_etapa, usuario_id, em, observacao) — gravado por TRIGGER a cada criação, mudança de etapa (dos dois lados) e cancelamento; o serviço identifica o usuário na transação e, sem ele, o banco recusa a mudança; imutável (UPDATE/DELETE recusados, testado)
+- [x] `os_provas` e `os_refacoes` (os_id, numero, motivo, data) — prova: enviada/devolvida com resultado (aprovada | ajuste); refação: motivo obrigatório e imutável; motivos em claro (texto técnico sobre a peça, entra em relatório — decisão registrada)
+- [x] `laboratorio_clientes` (tipo interno/externo, razão social, cnpj_cpf, responsável, cro, contatos, endereço, condição de pagamento, ativo) — CNPJ/CPF CIFRADO + `documento_hash` único; um só cliente interno (índice único parcial), criado na primeira OS; provado no banco de dev (`documento_cifrado` = `v1:…`)
+- [x] `tabela_precos` (tipo_trabalho, cliente_id nulo = padrão, valor, vigência) — preço do cliente vence o padrão; vigência nova preserva o histórico; o valor entra na OS no envio (clínica) ou na criação (externa). Falta a tela (`/admin/lab/financeiro`, M6)
 
 **Estoque (por unidade)**
-- [ ] `produtos` (unidade, nome, codigo, categoria, unidade_medida, estoque_minimo, fornecedor, custo_medio)
-- [ ] `lotes` (produto_id, lote, validade, saldo)
-- [ ] `estoque_movimentacoes` (produto_id, lote_id, tipo `entrada|retirada|ajuste`, quantidade, custo, os_id, motivo, usuario_id, justificativa)
+- [x] `produtos` (unidade, nome, codigo, categoria, unidade_medida, estoque_minimo, fornecedor, custo_medio) — migration `20261012000001_estoque`; código único por unidade; custo médio ponderado recalculado a cada entrada (testado: 400 a R$ 2 + 600 a R$ 1 = R$ 1,40)
+- [x] `lotes` (produto_id, lote, validade, saldo) — `CHECK (saldo >= 0)`: a RN-005 vale no banco; entrada sem lote usa `S/L`; mesmo lote soma no existente
+- [x] `estoque_movimentacoes` (produto_id, lote_id, tipo `entrada|retirada|ajuste`, quantidade, custo, os_id, motivo, usuario_id, justificativa) — imutável (UPDATE/DELETE recusados, testado); guarda saldo após, custo do momento, fornecedor e nº da nota; ajuste sem justificativa é recusado por CHECK (inclusive NULL — ver lição 11)
 
 **Financeiro (por unidade)**
-- [ ] `categorias_financeiras`
-- [ ] `lancamentos` (unidade, tipo, categoria_id, descricao, valor, vencimento, pagamento, forma, paciente_id, cliente_id, os_id, parcela, recorrencia, situacao)
-- [ ] `caixas_diarios` (unidade, data, totais por forma, fechado_em, fechado_por, reaberto_por, justificativa)
+- [x] `categorias_financeiras` — migration `20261012000002_financeiro`; por unidade e por tipo; as do sistema (usadas nos lançamentos automáticos) entram pela migration; a administração cria outras
+- [x] `lancamentos` (unidade, tipo, categoria_id, descricao, valor, vencimento, pagamento, forma, paciente_id, cliente_id, os_id, parcela, recorrencia, situacao) — mais `valor_pago`, `plano_id`, `grupo_id` e a tabela `lancamento_baixas` (baixa total/parcial, imutável); a situação é mantida por trigger a partir das baixas e conferida por CHECK; um título por OS em cada unidade (índice único)
+- [x] `caixas_diarios` (unidade, data, totais por forma, fechado_em, fechado_por, reaberto_por, justificativa) — um por dia e unidade; guarda a fotografia dos totais; nunca é apagado (trigger); reabertura sem justificativa é recusada por CHECK
 
 **Transversais**
 - [x] `notificacoes` (usuario_id, tipo, titulo, link, lida_em) — migration aplicada; `GET /notificacoes` e `PATCH /:id/lida` testados (isolamento por usuário); helper `notificar()` para os demais módulos
@@ -104,11 +104,11 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 
 ### 2.2 Estrutura e dados
 
-- [ ] Índices: `pacientes(nome)`, `pacientes(cpf)`, `consultas(profissional_id, inicio)`, `ordens_servico(etapa, previsao_entrega)`, `lancamentos(unidade, vencimento)`, `auditoria_logs(entidade, entidade_id)` — feitos `pacientes(nome)`, `pacientes(cpf_hash)` único e `consultas(profissional_id, inicio)`; `auditoria_logs(entidade, entidade_id)` também já existe; faltam os de OS e lançamentos (M3/M6)
-- [ ] Constraint de unicidade: CPF do paciente, e-mail do usuário, número da OS — a unicidade do CPF usa a coluna de hash (3.1), não o valor em claro — CPF do paciente (via `cpf_hash`) e e-mail do usuário prontos; falta número da OS (M3)
+- [ ] Índices: `pacientes(nome)`, `pacientes(cpf)`, `consultas(profissional_id, inicio)`, `ordens_servico(etapa, previsao_entrega)`, `lancamentos(unidade, vencimento)`, `auditoria_logs(entidade, entidade_id)` — feitos `pacientes(nome)`, `pacientes(cpf_hash)` único e `consultas(profissional_id, inicio)`; `auditoria_logs(entidade, entidade_id)` também já existe; faltam os de OS e lançamentos (M3/M6) — OS feitos no M3: `(etapa, previsao_entrega)`, `(etapa_producao, previsao_entrega)`, `(cliente_id, status)`, `(paciente_id)`; faltam lançamentos (M6) — M6: `lancamentos(unidade, vencimento)` e `(unidade, situacao)` criados. Item completo: marcar quando revisar a seção
+- [ ] Constraint de unicidade: CPF do paciente, e-mail do usuário, número da OS — a unicidade do CPF usa a coluna de hash (3.1), não o valor em claro — CPF do paciente (via `cpf_hash`) e e-mail do usuário prontos; falta número da OS (M3) — número da OS único desde o M3: item completo, marcar quando revisar a seção
 - [ ] Marcar no schema quais colunas são criptografadas e quais são hash de busca, para ninguém criar índice ou relatório sobre o valor em claro — `COMMENT ON COLUMN` nas colunas cifradas/hash (migration `…0002_comentarios_classificacao`); vale manter para toda tabela nova
 - [ ] `init.sql` do bootstrap → migrar para **migrations** (Knex ou Prisma) antes do primeiro deploy
-- [ ] Seed de desenvolvimento: 2 profissionais, 8 pacientes, 4 clientes de laboratório, catálogo de procedimentos, produtos de estoque — `seeds/02_clinica_dev.js` cria 2 profissionais com jornada e 8 pacientes (CPF cifrado); faltam clientes de laboratório, catálogo e produtos (M3/M4/M5) — `02_clinica_dev.js` (2 profissionais, 8 pacientes) e `03_catalogo_dev.js` (12 procedimentos); faltam clientes de laboratório e produtos (M3/M5)
+- [ ] Seed de desenvolvimento: 2 profissionais, 8 pacientes, 4 clientes de laboratório, catálogo de procedimentos, produtos de estoque — `seeds/02_clinica_dev.js` cria 2 profissionais com jornada e 8 pacientes (CPF cifrado); faltam clientes de laboratório, catálogo e produtos (M3/M4/M5) — `02_clinica_dev.js` (2 profissionais, 8 pacientes) e `03_catalogo_dev.js` (12 procedimentos); faltam clientes de laboratório e produtos (M3/M5) — `04_laboratorio_dev.js`: clínica própria + 3 clientes externos, 10 preços e 15 OS em várias etapas; faltam produtos (M5) — `05_estoque_dev.js`: 8 produtos por unidade (os das pranchas), com lote e entrada inicial. Item completo: marcar quando revisar a seção
 - [ ] Backup: `pg_dump` agendado (diário, retenção 30 dias) + teste de restauração
 
 ---
@@ -120,7 +120,7 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [x] `authMiddleware` — valida JWT e injeta `req.usuario` — testado: sem cookie 401, com cookie 200; consulta o banco, então bloqueio vale na hora
 - [x] `permitirPerfis([...])` — autorização por perfil — testado: perfil fora da lista 403, na lista 200, lista vazia nega todos (a matriz da URS será aplicada rota a rota nos próximos módulos)
 - [x] `escopoUnidade` — usuário do laboratório nunca lê dados financeiros/estoque da clínica e vice-versa (RN-008) — testado: clínica barrada em rota do laboratório (403), laboratório passa
-- [ ] Permissões configuráveis do perfil Laboratório (entrada de estoque, criar OS externa, cancelar OS) — configuração pronta e testada (`GET/PUT /perfis/laboratorio/permissoes`, refletida em `/auth/me`); falta aplicar nas rotas de estoque (M5) e OS (M3)
+- [x] Permissões configuráveis do perfil Laboratório (entrada de estoque, criar OS externa, cancelar OS) — configuração pronta e testada (`GET/PUT /perfis/laboratorio/permissoes`, refletida em `/auth/me`); falta aplicar nas rotas de estoque (M5) e OS (M3) — aplicado nas OS: técnico sem `criar_os_externa` ou sem `cancelar_os` recebe 403 (testado nos dois caminhos); falta estoque (M5) — M5: técnico sem `entrada_estoque` recebe 403 na entrada e, com ela, registra (testado nos dois caminhos). As três permissões estão aplicadas
 - [x] Recuperação de senha por e-mail (token com validade curta, uso único) — `/auth/esqueci-senha` responde 204 igual exista ou não o e-mail; token de 30 min, uso único, só o hash no banco; redefinir derruba as sessões. Convite chegou no Mailpit (`localhost:8025`). Obs.: o token vai na URL do e-mail — exceção inevitável do link, mitigada por uso único e validade curta
 - [x] Bloqueio após 5 tentativas inválidas + `express-rate-limit` em `/auth/*` (RNF-002) — bloqueio 423 (15 min) provado em teste; 429 provado em teste (`ratelimit.test.js`) e via `curl` (30 req/15 min por IP, compartilhado entre login/refresh/esqueci/redefinir)
 - [x] Sessão expira em 30 min de inatividade — teste: `ultimo_uso` retroagido 31 min → refresh recusado (access token dura 15 min)
@@ -157,7 +157,7 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [ ] TLS 1.2+ obrigatório; HSTS ligado; redirecionamento de HTTP para HTTPS
 - [ ] Disco/volume do banco com criptografia em repouso
 - [ ] Backups criptografados, com a chave guardada **separada** do backup
-- [ ] Criptografia por campo aplicada exatamente às colunas da tabela acima — nada além disso sem decisão registrada — `lib/crypto.js` (AES-256-GCM, formato `v1:` para rotação) aplicado a `cpf` e `observacoes` de pacientes; RG/CNPJ entram com os clientes do laboratório (M3) e texto clínico no M4 — pacientes (CPF, observações) e todo texto clínico do M4 cifrados; dump completo do banco de dev sem nenhuma ocorrência do texto clínico de teste. Faltam RG/CNPJ dos clientes do laboratório (M3)
+- [x] Criptografia por campo aplicada exatamente às colunas da tabela acima — nada além disso sem decisão registrada — `lib/crypto.js` (AES-256-GCM, formato `v1:` para rotação) aplicado a `cpf` e `observacoes` de pacientes; RG/CNPJ entram com os clientes do laboratório (M3) e texto clínico no M4 — pacientes (CPF, observações) e todo texto clínico do M4 cifrados; dump completo do banco de dev sem nenhuma ocorrência do texto clínico de teste. Faltam RG/CNPJ dos clientes do laboratório (M3) — M3: CNPJ/CPF dos clientes do laboratório cifrado + hash, observações da OS cifradas; no banco de dev a observação digitada na tela não aparece em claro (busca por `brux` = 0 linhas)
 - [x] Coluna de hash (HMAC) para CPF e e-mail, usada em busca e unicidade — CPF: `cpf_hash` (HMAC-SHA256, `HMAC_KEY` própria) usado na busca exata e na unicidade, testado. E-mail: decisão registrada — fica em claro (tabela 3.1) e a unicidade do usuário é por índice único, então não há hash de e-mail
 - [x] Chave de criptografia fora do banco e fora do repositório (variável de ambiente com permissão restrita ou KMS) — `ENC_KEY`/`HMAC_KEY` só no `.env` (ignorado pelo git, confirmado com `git check-ignore`); `.env.example` sem valores. Em produção virar variável com permissão restrita ou KMS
 - [ ] **Custódia da chave:** cópia em cofre de senhas da clínica **e** cópia offline guardada fisicamente; procedimento escrito de quem tem acesso
@@ -178,7 +178,7 @@ Toda tabela com `id` (uuid), `criado_em`, `atualizado_em`; onde indicado, `unida
 - [x] Nenhum segredo, chave de terceiros ou credencial no bundle do front (nem em variáveis `VITE_*`): só a URL da API e flags públicas — bundle de produção inspecionado (0 ocorrências)
 - [ ] O front nunca fala direto com banco, storage ou serviço de terceiros com credencial — tudo passa pelo backend
 - [x] Nada sensível em URL, query string ou fragmento; `Cache-Control: no-store` nas respostas com dado clínico ou financeiro — `no-store` já está em pacientes, consultas e `/auth/me`; PENDENTE: a busca de paciente manda o termo (que pode ser um CPF completo) em `GET /pacientes?busca=`, que pode ficar em log de acesso/proxy. Trocar por `POST /pacientes/buscar` antes do deploy — busca de paciente agora é `POST /pacientes/buscar` e `GET ?busca=` responde 400 (testado). Exceções por desenho: tokens de uso único em links de download e de redefinição de senha
-- [ ] PDFs, recibos e exportações gerados no backend e entregues por URL assinada — o front não monta documento com dado sensível — PDF do prontuário gerado no servidor (pdfkit) e entregue por link de uso único de 60 s (testado e conferido visualmente). PENDENTE: exportação xlsx de pacientes ainda sai direto na resposta autenticada; recibos no M6
+- [ ] PDFs, recibos e exportações gerados no backend e entregues por URL assinada — M6: recibo e extrato do cliente em PDF pelo mesmo mecanismo de link de uso único; faltam as exportações (xlsx) — o front não monta documento com dado sensível — PDF do prontuário gerado no servidor (pdfkit) e entregue por link de uso único de 60 s (testado e conferido visualmente). PENDENTE: exportação xlsx de pacientes ainda sai direto na resposta autenticada; recibos no M6
 - [x] Logout e expiração de sessão limpam o estado em memória do front e invalidam a sessão no servidor — provado: após sair, `/auth/me` = 401 e o cache de consultas é descartado; expiração dispara o mesmo caminho e avisa na tela de login
 
 ---
@@ -270,6 +270,17 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 | GET/POST | `/laboratorio/clientes` | Clientes do laboratório (internos e externos) | L, AL |
 | GET/PATCH | `/laboratorio/clientes/:id` | Detalhe / edição | L, AL |
 
+**Feito no M3 (11/10/2026)** — rotas com `@swagger` e contrato tipado, cobertas por `tests/m3.test.js` (21 testes; suíte completa: 125). Rotas a mais: `GET /ordens-servico/tecnicos`, `/tipos-trabalho`, `GET /ordens-servico/:id/anexos` e `/anexos/:anexoId` (link de uso único), `GET /laboratorio/clientes/:id/revelar/:campo` e `GET/PUT /laboratorio/tabela-precos` (só AL).
+
+**Mudança de regra pedida pelo usuário em 11/10/2026 — a tabela acima está desatualizada nos perfis:**
+
+- **A Secretaria só acompanha.** Ela lê a lista, o detalhe, o histórico e os anexos; toda escrita devolve 403 (testado).
+- **Quem gera a OS da clínica é o dentista**, no prontuário ("Gerar OS"). A data prevista é obrigatória e a OS já nasce enviada ao laboratório (`envio` / `recebida`) — não existe mais a etapa "Pré-laboratório" no fluxo novo.
+- **Quem conduz e conclui é o laboratório** (`PATCH /:id/etapa`, `/provas`, `/refacoes`, `/cancelar`, `/tecnico`, anexos). A peça pode ir à clínica (prova ou envio), voltar para refazer e sair de novo quantas vezes for preciso; a OS só fecha quando o laboratório marca `entregue` (a partir de pronta/enviada e sem prova pendente).
+- O quadro da clínica muda sozinho: `envio` → `laboratorio` → `retorno` (prova ou peça enviada) → `concluida`.
+- `GET /ordens-servico/:id` também para C e AL; `POST` e `/cancelar` também para AL; `?busca=` não existe (nome de paciente não vai para a URL — a busca é local); o valor da OS só é devolvido para AL (RN-007).
+- Em aberto: o dentista não tem tela para ver ou cancelar as OS que gerou (só a Secretaria e o laboratório têm lista).
+
 ### 4.6 Estoque — `modules/estoque`
 
 | Método | Rota | Descrição | Perfis |
@@ -284,6 +295,14 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 | GET | `/estoque/custo-por-os?os_id=` | Material consumido por OS | AL |
 
 `L*` — só quando a permissão do perfil Laboratório estiver habilitada.
+
+**Feito no M5 (11/10/2026)** — todas as rotas acima, com `@swagger` e contrato tipado, cobertas por `tests/m5.test.js` (18 testes; suíte completa: 143). A mais: `GET /estoque/resumo` (indicadores do topo). Diferenças em relação à tabela:
+
+- `?unidade=` e `?busca=` não existem: a unidade é a do usuário logado (RN-008/RN-014) e a busca é local.
+- O técnico do laboratório nunca recebe custo nem valor (RN-007); a administração recebe.
+- Retirada sem lote sai do lote que vence primeiro e pode usar mais de um. `os_id` só no laboratório e só para OS aberta.
+- Cruzar o mínimo para baixo notifica a administração da unidade.
+- `custo-por-os` sem `os_id` devolve o ranking do mês; com `os_id`, os itens daquela OS.
 
 ### 4.7 Financeiro — `modules/financeiro`
 
@@ -300,6 +319,15 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 | POST | `/financeiro/recibos/:lancamentoId` | Recibo em PDF | AC |
 | GET | `/financeiro/comissoes?periodo=` | Comissões por profissional — *Desejável* | AC |
 | GET | `/financeiro/exportar/carne-leao` | CSV Receita Saúde — *Desejável* | AC |
+
+**Feito no M6 (12/10/2026)** — rotas com `@swagger` e contrato tipado, cobertas por `tests/m6.test.js` (20 testes; suíte completa: 163). A mais: `GET/POST /financeiro/categorias`, `GET /financeiro/lancamentos/:id`, `POST /financeiro/lancamentos/:id/cancelar`, `GET /financeiro/caixa/fechamentos`, `POST /financeiro/extratos/:clienteId/pdf`. Diferenças e decisões:
+
+- `?unidade=` não existe: a unidade é a do usuário logado. Caixa do dia só na clínica; extrato só no laboratório.
+- Parcelamento divide o valor (centavos na primeira parcela); recorrência mensal repete o valor cheio; os dois juntos são recusados.
+- Lançamento com baixa não muda valor nem vencimento e não é cancelado. Não há estorno de baixa.
+- Títulos automáticos: OS concluída com valor (laboratório a receber + clínica a pagar, vencimento em 30 dias); plano de tratamento aprovado (clínica a receber, um título pelo total); entrada de estoque com "lançar no financeiro" (a pagar em 30 dias).
+- Recibo e extrato em PDF são gerados no servidor e entregues por link de uso único de 60 s; o download fica na auditoria.
+- **Não feitos (Desejável):** comissões e exportação Carnê-Leão.
 
 ### 4.8 Relatórios — `modules/relatorios`
 
@@ -320,18 +348,18 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 
 - [x] RN-001 CPF único e válido; paciente sem CPF exige responsável — `lib/validacoes.js` (dígitos verificadores) + unicidade por hash + CHECK no banco; testado com CPF formatado/duplicado/inválido e menor sem CPF com responsável
 - [x] RN-002 Sem sobreposição de horário por profissional/cadeira — EXCLUDE por profissional e por cadeira no Postgres; testado (409 com mensagem distinta) e com horários vizinhos permitidos
-- [ ] RN-003 "Envio" exige laboratório e data prevista
-- [ ] RN-004 OS atrasada = previsão < hoje e não concluída
-- [ ] RN-005 Retirada não deixa saldo negativo
+- [x] RN-003 "Envio" exige laboratório e data prevista — a OS já nasce enviada, então a data prevista é obrigatória na criação (400 sem ela) e o CHECK do banco (`os_rn003_envio_chk`) impede removê-la depois (testado com UPDATE direto)
+- [x] RN-004 OS atrasada = previsão < hoje e não concluída — calculado no servidor (fuso de Brasília) em toda OS (`prazo.situacao`) e em `GET /ordens-servico/atrasadas`; a vencer = até 3 dias; cancelada/concluída saem (testado)
+- [x] RN-005 Retirada não deixa saldo negativo — recusada inteira na API (409) e por CHECK no banco; testado também com duas retiradas simultâneas (só uma passa) e com UPDATE direto; a tela bloqueia o botão e mostra o saldo disponível
 - [x] RN-006 Sem exclusão de registro clínico; correção por adendo — garantido por trigger no Postgres (evolução, adendo, anexo, trilha de acesso, anamnese, procedimento fechado, plano) e testado com UPDATE/DELETE direto no banco
-- [ ] RN-007 Secretaria, Clínica e Laboratório não acessam financeiro
-- [ ] RN-008 Estoque e financeiro separados por unidade
+- [x] RN-007 Secretaria, Clínica e Laboratório não acessam financeiro — todas as rotas de `/financeiro` exigem perfil de administração (403 testado para os três perfis em fluxo, lançamentos, contas e caixa) — já aplicado ao que existe: valor da OS (M3) e custo/valor de estoque (M5) só saem para a administração; Secretaria e Clínica não entram no estoque (403). Falta o módulo financeiro (M6)
+- [x] RN-008 Estoque e financeiro separados por unidade — M6: lançamentos, categorias e caixa pertencem a uma unidade; a da requisição vem do usuário logado e título da outra unidade responde 404 (testado). A OS da clínica gera dois títulos separados: a receber no laboratório e a pagar na clínica — ESTOQUE feito no M5: a unidade vem sempre do usuário logado (não há parâmetro), e produto da outra unidade responde 404 em leitura, entrada, retirada e edição (testado). Falta o financeiro (M6)
 - [x] RN-009 Paciente com histórico só é inativado — `DELETE /pacientes/:id` inativa se houver consulta e exclui se não houver; `temHistorico()` é o ponto único a estender nos M3/M4
 - [x] RN-010 Faltou/Cancelada libera horário e conta no absenteísmo — faltou/cancelada saem da restrição de conflito; testado: reagendar no mesmo horário após cancelar e após faltou. Falta o indicador de absenteísmo (M7)
-- [ ] RN-011 Caixa fechado só muda após reabertura justificada
-- [ ] RN-012 Toda mudança de etapa grava usuário e data/hora
-- [ ] RN-013 OS da clínica chegam integradas; das externas, cadastro manual
-- [ ] RN-014 Administrador só acessa finanças, estoque, relatórios e usuários do próprio setor
+- [x] RN-011 Caixa fechado só muda após reabertura justificada — com o caixa do dia fechado, nenhuma baixa daquele dia entra: recusado na API (409) e por trigger no banco (testado com INSERT direto); reabrir exige justificativa (400 na API, CHECK no banco) e fica na auditoria. No navegador: fechar → pagamento recusado com a mensagem → reabrir com justificativa
+- [x] RN-012 Toda mudança de etapa grava usuário e data/hora — trigger no Postgres; histórico imutável; testado na ordem completa de um ciclo e com UPDATE sem usuário (recusado). testado na ordem completa de um ciclo com prova, refação e duas idas à clínica
+- [x] RN-013 OS da clínica chegam integradas; das externas, cadastro manual — a OS gerada pelo dentista aparece na hora para o laboratório (como "Recebida", com notificação); o laboratório vê só o nome do paciente; externas são criadas pelo laboratório (`L-…`) e a clínica não as enxerga (404)
+- [ ] RN-014 Administrador só acessa finanças, estoque, relatórios e usuários do próprio setor — usuários (M1) e estoque (M5) feitos e testados; finanças feitas no M6 (testado); faltam relatórios (M7)
 - [ ] Testes automatizados cobrindo cada regra acima (Vitest/Jest + supertest)
 
 ---
@@ -353,11 +381,11 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 - [ ] Design tokens do protótipo (cores, tipografia Bricolage Grotesque + Figtree, raios, espaçamentos) — fontes Bricolage Grotesque + Figtree (pacotes locais, sem CDN) e tokens em `styles/tokens.css`, mas as cores são PROVISÓRIAS — o protótipo de 29 telas não está no repositório
 - [ ] Componentes base: Button, Input, Select, Textarea, Checkbox, Radio, Badge, Card, Table, Tabs, Segmented, Modal, Drawer, Toast, EmptyState, Skeleton — existem Button, Campo (Input/Select/Textarea com rótulo/erro/dica), Checkbox, Badge, Card, Table (vira cartões no celular), Abas, Modal, Drawer, Toast, EmptyState, Skeleton, Paginação, ConfirmDialog; faltam Radio e Segmented
 - [ ] Layout com menu lateral por perfil, barra superior, busca e notificações — menu lateral por perfil (barra inferior no celular), barra superior e notificações com contador; falta a busca global
-- [ ] Quadro Kanban reutilizável com arrastar e soltar (dnd-kit) — agenda, OS da clínica e produção do laboratório — quadro do dia funcionando com `dnd-kit` (arrastar Confirmada → Chegou provado no navegador) e botões por teclado; ainda não extraído como componente genérico para as OS (M3)
+- [ ] Quadro Kanban reutilizável com arrastar e soltar (dnd-kit) — agenda, OS da clínica e produção do laboratório — quadro do dia funcionando com `dnd-kit` (arrastar Confirmada → Chegou provado no navegador) e botões por teclado; ainda não extraído como componente genérico para as OS (M3) — M3: quadro de OS com o mesmo padrão `dnd-kit` (arrasto com diálogo da RN-003 provado no navegador); a produção do laboratório é LISTA no protótipo, não Kanban. Os dois quadros ainda têm código próprio (não há componente genérico)
 - [x] Componente de calendário semanal (grade de horários, filtro por profissional, bloqueios hachurados) — grade semana/dia com filtro por profissional, eventos lado a lado quando sobrepostos, jornada e bloqueios hachurados — verificado no navegador; falta a visão de mês
 - [x] Odontograma interativo (seleção por dente e face) — FDI permanente/decídua na vista do dentista, mesial apontando para a linha média; faces clicáveis no desenho + caixas equivalentes (teclado/leitor de tela); cor por situação; testado (geometria das faces) e usado no navegador
 - [ ] Gráficos (Recharts) para financeiro e relatórios
-- [ ] Máscaras: CPF, CNPJ, telefone, CEP, moeda (pt-BR) — CPF, celular e CEP prontos e testados; CNPJ e moeda entram com M3/M6
+- [ ] Máscaras: CPF, CNPJ, telefone, CEP, moeda (pt-BR) — CPF, celular e CEP prontos e testados; CNPJ e moeda entram com M3/M6 — CNPJ/CPF (`mascaraDocumento`) pronto e testado no M3; falta moeda (M6)
 - [ ] Acessibilidade: foco visível, rótulos reais, contraste 4.5:1, alvo de toque ≥44px — contraste medido nos 23 pares de cor dos tokens: todos ≥ 4,5:1 (mínimo 4,56); rótulos reais ligados por `aria-*`, foco preso em modal/drawer e Esc fecha (testado), alvos ≥ 44 px; ressalva: a cor do profissional é livre e pode ficar abaixo do contraste com texto branco; falta teste com leitor de tela
 - [ ] Testes: Vitest + Testing Library nos fluxos críticos; Playwright no caminho login → agendar → criar OS — 22 testes Vitest (máscaras, datas, layout da agenda, cliente HTTP, formulário); Playwright (login → agendar → criar OS) ainda não
 
@@ -369,23 +397,23 @@ Perfis: **S** Secretaria · **C** Clínica · **AC** Adm. Clínica · **L** Labo
 | [x] `/pacientes` | Lista + cadastro em drawer *(lista com busca, paginação e cadastro em drawer; provado no navegador)* | S |
 | [x] `/pacientes/:id` | Ficha do paciente *(dados, endereço, responsável, próximas consultas e consentimentos; falta o prontuário (M4))* | S, C |
 | [x] `/agenda` | Semana (dia/mês na mesma tela) *(semana e dia; falta a visão de mês e a tela de bloqueios (a API existe))* | S |
-| [x] `/agenda/quadro` | Quadro do dia por status | S |
-| [ ] `/ordens-servico` | Kanban de OS | S |
+| [x] `/agenda/quadro` | Quadro do dia por status *(pedido do usuário em 11/10/2026: sem "Chamar para a cadeira" e sem a coluna "Em atendimento"; a Secretaria confirma e marca a chegada; o dentista da consulta conclui o atendimento no prontuário e só então a consulta vai para "Encerradas". API: concluir é 403 para qualquer outro perfil ou dentista — testado; conferido no navegador)* | S |
+| [x] `/ordens-servico` | Quadro de OS — **somente leitura** *(pedido do usuário em 11/10/2026: sem indicadores no topo, sem "Nova OS", sem arrastar; 4 colunas — Envio, Laboratório, Retorno / Agenda, Concluída — com as cores da prancha "Secretaria · ordens de serviço"; detalhe em drawer sem ações. Conferido no navegador)* | S |
 | [x] `/clinica/prontuario/:id` | Prontuário, odontograma, linha do tempo *(alertas em destaque, linha do tempo, evoluções/adendos, odontograma, plano, anexos (envio e prévia por link de uso único), acessos e PDF — fluxo percorrido no navegador)* | C |
 | [x] `/clinica/anamnese/:id` | Anamnese versionada + assinatura *(versões, nova versão a partir da anterior, alertas, assinatura com confirmação)* | C |
 | [x] `/clinica/procedimentos` | Registro + catálogo *(catálogo (também como aba em `/admin/clinica`); o registro por dente fica no prontuário)* | C |
-| [ ] `/lab/producao` | Kanban de produção | L |
-| [ ] `/lab/estoque` | Estoque + retirada vinculada à OS | L |
-| [ ] `/lab/clientes` | Clientes do laboratório | L |
+| [x] `/lab/producao` | Produção *(prancha "Laboratório · ordens de serviço": lista em dois grupos — clínica própria e externos — comparada lado a lado. Divergência: clicar abre o detalhe da OS (com atalho para o caderno), não o caderno direto)* | L |
+| [x] `/lab/estoque` | Estoque + retirada vinculada à OS *(prancha "Laboratório · estoque" comparada lado a lado; retirada de 40 g vinculada à OS-0004 feita no navegador. Divergências: "Exportar" não feito; "Responsável" é sempre o usuário logado; a unidade de medida é a do produto (sem conversão); lote escolhido automaticamente pelo vencimento)* | L |
+| [x] `/lab/clientes` | Clientes do laboratório *(pranchas "todos os cadernos", "caderno do cliente" e "caderno da clínica própria" comparadas; documento e telefone mascarados com "Revelar" auditado — o protótipo mostra o telefone em claro; "Exportar" não feito)* | L |
 | [ ] `/lab/relatorio-os` | Relatório operacional | L |
-| [ ] `/admin/clinica/financeiro` | Fluxo de caixa e caixa do dia | AC |
+| [x] `/admin/clinica/financeiro` | Fluxo de caixa e caixa do dia *(prancha "Adm. Clínica · financeiro" comparada em 1280, 1440 e 375 px: indicadores, gráfico semanal, lançamentos, "Caixa de hoje" e "A pagar em breve". No navegador: lançamento parcelado, fechar caixa, pagamento recusado, reabrir. Fora: abas "Transações" e "Comissões", "Exportar", período livre; gráfico em CSS, sem Recharts)* | AC |
 | [ ] `/admin/clinica/relatorios` | Indicadores da clínica | AC |
-| [ ] `/admin/clinica/estoque` | Estoque + entrada | AC |
+| [x] `/admin/clinica/estoque` | Estoque + entrada *(mesmo componente da tela do Adm. Laboratório, com os indicadores e a coluna "Custo médio" da prancha "Adm. Clínica · estoque"; API testada, mas esta variação NÃO foi aberta no navegador. Fora: anexar arquivo da nota fiscal (só o número) e "Lançar a compra no financeiro" (M6))* | AC |
 | [x] `/admin/clinica/usuarios` | Usuários + auditoria *(rota real `/admin/clinica`, com abas Usuários, Profissionais e jornada, Auditoria)* | AC |
-| [ ] `/admin/lab/financeiro` | A receber, a pagar, tabela de preços | AL |
+| [x] `/admin/lab/financeiro` | A receber, a pagar, tabela de preços *(prancha "Adm. Laboratório · financeiro" comparada em 1280 e 1440 px: "A receber por cliente", gráfico, contas a pagar, tabela de preços; abas A receber, A pagar, Tabela de preços e Extratos por cliente — o extrato segue a prancha "extrato do cliente" e baixa em PDF. Fora: XLSX e "Enviar por e-mail")* | AL |
 | [ ] `/admin/lab/relatorio-os` | Relatórios de OS com valores | AL |
 | [ ] `/admin/lab/relatorios` | Faturamento, custos, margem | AL |
-| [ ] `/admin/lab/estoque` | Estoque + custo por OS | AL |
+| [x] `/admin/lab/estoque` | Estoque + custo por OS *(prancha "Adm. Laboratório · estoque" comparada; entrada, aba Inventário com ajuste justificado e cartão "Custo de material por OS" conferidos no navegador. A mais que a prancha: "Novo produto"/editar e retirada pela administração)* | AL |
 | [x] `/admin/lab/usuarios` | Usuários + permissões do perfil *(rota real `/admin/lab`, com abas Usuários, Permissões do Laboratório, Auditoria)* | AL |
 
 ---
@@ -424,11 +452,11 @@ Mesmo app React: as rotas são as mesmas, o layout muda abaixo de 768px (menu la
 - [ ] Entrar
 - [ ] Agenda do dia (lista por horário + filtros de status)
 - [ ] Pacientes (busca + lista + ação de WhatsApp)
-- [ ] Ordens de serviço (filtros por etapa + cartões)
+- [x] Ordens de serviço (filtros por etapa + cartões) — pranchas "Mobile · ordens de serviço" e "Mobile · produção (lab)" comparadas a 375 px; ciclo concluído no celular
 - [ ] Prontuário (alertas, linha do tempo, plano de tratamento, nova evolução)
-- [ ] Produção do laboratório (filtro por origem, etapa e técnico)
-- [ ] Estoque do laboratório (alerta de mínimo + registrar retirada)
-- [ ] Financeiro (saldo, receitas/despesas, últimos lançamentos)
+- [ ] Produção do laboratório (filtro por origem, etapa e técnico) — tela feita e comparada com a prancha "Mobile · produção (lab)" (indicadores, filtro por origem, cartões por prazo); no celular ainda não há filtro por etapa e técnico (a prancha também não mostra)
+- [x] Estoque do laboratório (alerta de mínimo + registrar retirada) — prancha "Mobile · estoque (lab)" comparada a 375 px; a retirada abre em drawer
+- [x] Financeiro (saldo, receitas/despesas, últimos lançamentos) — prancha "Mobile · financeiro" comparada a 375 px
 
 ---
 

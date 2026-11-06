@@ -3,7 +3,7 @@ import { api, chamar, mensagemDeErro } from '../../api/client';
 import type { StatusConsulta } from '../../api/types';
 import { useToast } from '../../toast/useToast';
 
-type Alvo = Exclude<StatusConsulta, 'agendada' | 'cancelada'>;
+type Alvo = Exclude<StatusConsulta, 'agendada' | 'cancelada' | 'em_atendimento'>;
 
 /** Move a consulta de status e revalida tudo que depende da agenda. */
 export function useMudarStatus() {

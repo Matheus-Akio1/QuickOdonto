@@ -7,7 +7,9 @@ const ATIVAS = "('faltou','cancelada')"; // status que liberam o horário (RN-01
 const TRANSICOES = {
   agendada: ['confirmada', 'chegou', 'faltou'],
   confirmada: ['chegou', 'faltou'],
-  chegou: ['em_atendimento'],
+  // Depois da chegada, quem encerra é o dentista, ao concluir o atendimento no prontuário.
+  chegou: ['concluida'],
+  // "Em atendimento" saiu do fluxo; consultas antigas nesse status ainda podem ser concluídas.
   em_atendimento: ['concluida'],
 };
 const CANCELAVEIS = ['agendada', 'confirmada', 'chegou'];
@@ -291,8 +293,21 @@ async function reagendarConsulta(id, dados, usuarioId) {
   return { antes, depois: await buscarConsulta(id) };
 }
 
-async function mudarStatus(id, para, usuarioId) {
+async function mudarStatus(id, para, usuario) {
+  const usuarioId = usuario.id;
   const antes = await buscarConsulta(id);
+  // A Secretaria confirma e registra a chegada; concluir é do dentista da própria consulta.
+  if (para === 'concluida') {
+    const dono = await query('SELECT 1 FROM profissionais WHERE id = $1 AND usuario_id = $2', [
+      antes.profissional.id,
+      usuarioId,
+    ]);
+    if (usuario.perfil !== 'clinica' || !dono.rows[0]) {
+      throw erro(403, 'Só o dentista da consulta conclui o atendimento.');
+    }
+  } else if (usuario.perfil !== 'secretaria') {
+    throw erro(403, 'Sem permissão para esta operação.');
+  }
   if (!(TRANSICOES[antes.status] || []).includes(para)) {
     throw erro(409, `Não é possível mover de "${antes.status}" para "${para}".`);
   }

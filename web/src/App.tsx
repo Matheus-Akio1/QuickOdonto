@@ -6,7 +6,6 @@ import { useAuth } from './auth/useAuth';
 import { Carregando } from './components/Feedback';
 import { AppShell } from './layout/AppShell';
 import { EsqueciSenhaPage } from './pages/EsqueciSenhaPage';
-import { LabPage } from './pages/LabPage';
 import { LoginPage } from './pages/LoginPage';
 import { PacientesPage } from './pages/pacientes/PacientesPage';
 import { RedefinirSenhaPage } from './pages/RedefinirSenhaPage';
@@ -33,6 +32,21 @@ const SelecionarPacientePage = lazy(() =>
   import('./pages/clinica/SelecionarPacientePage').then((m) => ({
     default: m.SelecionarPacientePage,
   })),
+);
+const OrdensPage = lazy(() =>
+  import('./pages/os/OrdensPage').then((m) => ({ default: m.OrdensPage })),
+);
+const ProducaoPage = lazy(() =>
+  import('./pages/lab/ProducaoPage').then((m) => ({ default: m.ProducaoPage })),
+);
+const ClientesPage = lazy(() =>
+  import('./pages/lab/ClientesPage').then((m) => ({ default: m.ClientesPage })),
+);
+const EstoquePage = lazy(() =>
+  import('./pages/estoque/EstoquePage').then((m) => ({ default: m.EstoquePage })),
+);
+const FinanceiroPage = lazy(() =>
+  import('./pages/financeiro/FinanceiroPage').then((m) => ({ default: m.FinanceiroPage })),
 );
 const FichaPage = lazy(() =>
   import('./pages/pacientes/FichaPage').then((m) => ({ default: m.FichaPage })),
@@ -75,12 +89,22 @@ export function App() {
             </Route>
             <Route element={<RotaProtegida perfis={['adm_clinica']} />}>
               <Route path="/admin/clinica" element={<AdminPage unidade="clinica" />} />
+              <Route path="/admin/clinica/estoque" element={<EstoquePage />} />
+              <Route path="/admin/clinica/financeiro" element={<FinanceiroPage />} />
             </Route>
             <Route element={<RotaProtegida perfis={['adm_laboratorio']} />}>
               <Route path="/admin/lab" element={<AdminPage unidade="laboratorio" />} />
+              <Route path="/admin/lab/estoque" element={<EstoquePage />} />
+              <Route path="/admin/lab/financeiro" element={<FinanceiroPage />} />
+            </Route>
+            <Route element={<RotaProtegida perfis={['secretaria']} />}>
+              <Route path="/ordens-servico" element={<OrdensPage />} />
             </Route>
             <Route element={<RotaProtegida perfis={['laboratorio']} />}>
-              <Route path="/lab" element={<LabPage />} />
+              <Route path="/lab" element={<Navigate to="/lab/producao" replace />} />
+              <Route path="/lab/producao" element={<ProducaoPage />} />
+              <Route path="/lab/clientes" element={<ClientesPage />} />
+              <Route path="/lab/estoque" element={<EstoquePage />} />
             </Route>
           </Route>
         </Route>

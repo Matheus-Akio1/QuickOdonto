@@ -230,7 +230,7 @@
 /* ---------- Quadro do dia (prancha "Agenda · quadro do dia") ---------- */
 .quadro {
   display: grid;
-  grid-template-columns: repeat(5, minmax(196px, 1fr));
+  grid-template-columns: repeat(4, minmax(196px, 1fr));
   gap: 12px;
   overflow-x: auto;
   align-items: stretch;
@@ -355,13 +355,14 @@
 }
 @media (max-width: 767px) {
   .quadro {
-    grid-template-columns: repeat(5, 80vw);
+    grid-template-columns: repeat(4, 80vw);
     scroll-snap-type: x mandatory;
   }
   .q-col {
     scroll-snap-align: start;
   }
+  /* A semana no celular rola para os lados em vez de espremer sete colunas. */
   .ag-dia {
-    min-width: 0;
+    min-width: 132px;
   }
 }

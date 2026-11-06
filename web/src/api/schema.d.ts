@@ -2230,6 +2230,1116 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/ordens-servico': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Quadro e lista. A clínica vê as próprias OS; o laboratório, as externas e as já enviadas */
+    get: {
+      parameters: {
+        query?: {
+          status?: 'aberta' | 'concluida' | 'cancelada' | 'todas';
+          /** @description Etapa do quadro (clínica) ou da produção (laboratório) */
+          etapa?: string;
+          origem?: 'propria' | 'externa';
+          cliente?: string;
+          tecnico?: string;
+          profissional?: string;
+          inicio?: string;
+          fim?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'][];
+          };
+        };
+        /** @description Filtros inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Sem permissão */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Cria OS — o dentista gera a da clínica, que já nasce enviada ao laboratório (RN-003, RN-013); o laboratório cria as externas */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['OsEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Sem permissão (inclui laboratório sem a permissão de OS externa) */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/atrasadas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Atrasadas (previsão anterior a hoje e OS aberta — RN-004) e a vencer em 3 dias */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              atrasadas: components['schemas']['OrdemServico'][];
+              a_vencer: components['schemas']['OrdemServico'][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/tecnicos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Técnicos do laboratório que podem receber OS */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** Format: uuid */
+              id: string;
+              nome: string;
+            }[];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/tipos-trabalho': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Tipos de trabalho já usados ou com preço cadastrado (sugestões, sem valores) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': string[];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detalhe da OS com observações, provas e refações */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServicoDetalhe'];
+          };
+        };
+        /** @description Não encontrada (ou fora do escopo da unidade) */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Edita a OS em aberto — só o laboratório (tudo nas externas; nas da clínica, apenas o prazo) */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['OsEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Campo fora do alcance do perfil */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description OS fechada ou já em produção */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/ordens-servico/{id}/etapa': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Move a OS na produção (só o laboratório). "entregue" conclui a OS; o quadro da clínica acompanha sozinho */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            etapa:
+              | 'recebida'
+              | 'modelo'
+              | 'estrutura'
+              | 'prova'
+              | 'acabamento'
+              | 'pronta'
+              | 'enviada'
+              | 'entregue';
+            observacao?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'];
+          };
+        };
+        /** @description Etapa inválida */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Transição não permitida ou requisito ausente */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/ordens-servico/{id}/cancelar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancela com motivo (laboratório depende da permissão "cancelar OS") */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            motivo: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'];
+          };
+        };
+        /** @description Perfil sem permissão de cancelar */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description OS já fechada */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/historico': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Histórico de etapas com usuário e data/hora (RN-012) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OsHistorico'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/tecnico': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Atribui (ou remove) o técnico responsável */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            tecnico_id: string | null;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OrdemServico'];
+          };
+        };
+        /** @description Técnico inválido */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/provas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registra a devolução da prova que estava na clínica (aprovada ou com ajuste) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            resultado: 'aprovada' | 'ajuste';
+            motivo?: string;
+            /** @enum {string} */
+            etapa?:
+              'recebida' | 'modelo' | 'estrutura' | 'prova' | 'acabamento' | 'pronta' | 'enviada';
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              os: components['schemas']['OrdemServico'];
+              provas: components['schemas']['OsProva'][];
+            };
+          };
+        };
+        /** @description Sem prova em aberto */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/refacoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Registra refação com motivo e devolve a OS a uma etapa de produção */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            motivo: string;
+            /** @enum {string} */
+            etapa?:
+              'recebida' | 'modelo' | 'estrutura' | 'prova' | 'acabamento' | 'pronta' | 'enviada';
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              os: components['schemas']['OrdemServico'];
+              refacoes: components['schemas']['OsRefacao'][];
+            };
+          };
+        };
+        /** @description OS fechada */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/anexos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Anexos da OS — só metadados */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OsAnexo'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Envia foto, escaneamento ou documento (JPG, PNG, WEBP ou PDF até 50 MB) — cifrado no servidor */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            /** Format: binary */
+            arquivo: string;
+            /** @enum {string} */
+            tipo: 'foto' | 'escaneamento' | 'documento' | 'radiografia' | 'outro';
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OsAnexo'];
+          };
+        };
+        /** @description Acima de 50 MB */
+        413: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Tipo não aceito ou conteúdo diferente do declarado */
+        415: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ordens-servico/{id}/anexos/{anexoId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Metadados do anexo + link de uso único (60 s) para visualizar/baixar */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          anexoId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['OsAnexo'] &
+              components['schemas']['LinkDownload'];
+          };
+        };
+        /** @description Não encontrado */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/laboratorio/clientes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Clientes do laboratório — a clínica própria (interno) e os externos — com OS em aberto */
+    get: {
+      parameters: {
+        query?: {
+          tipo?: 'interno' | 'externo';
+          ativo?: 'true' | 'false' | 'todos';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LabCliente'][];
+          };
+        };
+        /** @description Só o laboratório */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Cadastra cliente externo (CNPJ/CPF cifrado; unicidade por hash) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LabClienteEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LabCliente'];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description CNPJ/CPF já cadastrado */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/laboratorio/clientes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Caderno do cliente — dados, indicadores do mês, OS em produção e entregues */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LabCaderno'];
+          };
+        };
+        /** @description Não encontrado */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Edita o cliente (a clínica própria não pode ser inativada) */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LabClienteEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LabCliente'];
+          };
+        };
+        /** @description CNPJ/CPF já cadastrado ou cliente interno */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/laboratorio/clientes/{id}/revelar/{campo}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Revela documento ou telefone completo (fica na auditoria, sem o valor) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          campo: 'documento' | 'telefone';
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CampoRevelado'];
+          };
+        };
+        /** @description Campo não revelável */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/laboratorio/tabela-precos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Preços vigentes por tipo de trabalho (padrão e por cliente) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Preco'][];
+          };
+        };
+        /** @description Só a administração do laboratório (RN-007) */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    /** Grava preços (mesma vigência substitui; vigência nova preserva o histórico) */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            itens: {
+              tipo_trabalho: string;
+              /** Format: uuid */
+              cliente_id?: string | null;
+              valor: number;
+              /** Format: date */
+              vigencia_inicio?: string;
+            }[];
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Preco'][];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/notificacoes': {
     parameters: {
       query?: never;
@@ -2353,6 +3463,1356 @@ export interface paths {
               /** Format: date-time */
               timestamp?: string;
             };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/categorias': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Categorias de receita e despesa da unidade */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CategoriaFinanceira'][];
+          };
+        };
+        /** @description Só a administração (RN-007) */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Cria categoria na unidade */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            tipo: 'receita' | 'despesa';
+            nome: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CategoriaFinanceira'];
+          };
+        };
+        /** @description Nome repetido */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/fluxo-caixa': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Receitas, despesas e saldo — realizado, em aberto e previsto — com quebra semanal */
+    get: {
+      parameters: {
+        query: {
+          inicio: string;
+          fim: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['FluxoCaixa'];
+          };
+        };
+        /** @description Período inválido */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/lancamentos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lançamentos da unidade (máx. 500) — o período olha o pagamento ou, em aberto, o vencimento */
+    get: {
+      parameters: {
+        query?: {
+          tipo?: 'receita' | 'despesa';
+          situacao?: 'aberto' | 'parcial' | 'pago' | 'cancelado' | 'em_aberto';
+          categoria?: string;
+          cliente?: string;
+          inicio?: string;
+          fim?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Cria lançamento — parcelado (divide o valor) ou recorrente mensal (repete o valor); pode já nascer com baixa */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LancamentoEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'][];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Caixa do dia fechado para a baixa informada */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/lancamentos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detalhe do lançamento com as baixas */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'];
+          };
+        };
+        /** @description Não encontrado (ou de outra unidade) */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Edita o lançamento (com baixa, valor e vencimento ficam travados) */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['LancamentoEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'];
+          };
+        };
+        /** @description Lançamento com baixa ou cancelado */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/financeiro/lancamentos/{id}/baixa': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Baixa total ou parcial — recusada se o caixa do dia estiver fechado (RN-011) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            valor?: number;
+            forma: components['schemas']['FormaPagamento'];
+            /** Format: date */
+            data?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'];
+          };
+        };
+        /** @description Baixa maior que o saldo */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/lancamentos/{id}/cancelar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancela lançamento sem baixa, com motivo */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            motivo: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Lancamento'];
+          };
+        };
+        /** @description Já tem baixa ou já estava cancelado */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/contas-receber': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Títulos a receber em aberto, por vencimento (no laboratório, também agrupados por cliente) */
+    get: {
+      parameters: {
+        query?: {
+          inicio?: string;
+          fim?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ContasEmAberto'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/contas-pagar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Títulos a pagar em aberto, por vencimento */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ContasEmAberto'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/caixa/hoje': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Caixa do dia da clínica — totais por forma de pagamento, entradas e saídas */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Outro dia (padrão hoje) */
+          data?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Caixa'];
+          };
+        };
+        /** @description Só a administração da clínica */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/caixa/fechamentos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fechamentos de caixa dos últimos 60 dias */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** Format: uuid */
+              id: string;
+              /** Format: date */
+              data: string;
+              totais: components['schemas']['TotaisCaixa'];
+              /** @enum {string} */
+              situacao: 'aberto' | 'fechado';
+              /** Format: date-time */
+              fechado_em: string;
+              fechado_por?: string | null;
+              /** Format: date-time */
+              reaberto_em?: string | null;
+              reaberto_por?: string | null;
+              justificativa?: string | null;
+            }[];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/caixa/fechar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Fecha o caixa do dia e guarda os totais — depois disso nenhuma baixa do dia entra (RN-011) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          'application/json': {
+            /** Format: date */
+            data?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Caixa'];
+          };
+        };
+        /** @description Já estava fechado */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/caixa/{id}/reabrir': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reabre o caixa com justificativa obrigatória (RN-011) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            justificativa: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Caixa'];
+          };
+        };
+        /** @description Justificativa ausente */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Já estava aberto */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/extratos/{clienteId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Extrato mensal de um cliente do laboratório — OS concluídas, resumo por tipo e pagamento */
+    get: {
+      parameters: {
+        query?: {
+          /** @description AAAA-MM (padrão mês atual) */
+          mes?: string;
+        };
+        header?: never;
+        path: {
+          clienteId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Extrato'];
+          };
+        };
+        /** @description Só a administração do laboratório */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Cliente não encontrado */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/extratos/{clienteId}/pdf': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Gera o link de uso único (60 s) do extrato em PDF */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          clienteId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          'application/json': {
+            mes?: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LinkDownload'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/financeiro/recibos/{lancamentoId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Gera o link de uso único (60 s) do recibo em PDF — receita da clínica com valor recebido */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          lancamentoId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['LinkDownload'];
+          };
+        };
+        /** @description Lançamento sem valor recebido ou que não é receita */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/produtos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Produtos da unidade do usuário com saldo por lote e situação (custo só para a administração) */
+    get: {
+      parameters: {
+        query?: {
+          ativo?: 'true' | 'false' | 'todos';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'][];
+          };
+        };
+        /** @description Perfil sem acesso ao estoque */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Cadastra produto na unidade do administrador */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['ProdutoEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'];
+          };
+        };
+        /** @description Dados inválidos */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Código já usado na unidade */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/produtos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Edita o produto (inativar exige saldo zerado) */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['ProdutoEntrada'];
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'];
+          };
+        };
+        /** @description Não encontrado (ou de outra unidade) */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Código duplicado ou produto com saldo */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  '/estoque/entradas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Entrada com lote, validade, custo e nota fiscal (técnico do laboratório depende da permissão) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            produto_id: string;
+            quantidade: number;
+            lote?: string | null;
+            /** Format: date */
+            validade?: string | null;
+            custo_unitario: number;
+            fornecedor?: string | null;
+            nota_fiscal?: string | null;
+            lancar_financeiro?: boolean;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'];
+          };
+        };
+        /** @description Perfil sem permissão de entrada */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Produto não encontrado */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/retiradas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Retirada — recusa saldo negativo (RN-005); no laboratório aceita vínculo com OS */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            produto_id: string;
+            /** Format: uuid */
+            lote_id?: string | null;
+            quantidade: number;
+            /** Format: uuid */
+            os_id?: string | null;
+            /** @enum {string} */
+            motivo: 'producao' | 'uso' | 'perda' | 'refacao' | 'vencimento';
+            observacao?: string | null;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'];
+          };
+        };
+        /** @description Dados inválidos ou OS fechada */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Saldo insuficiente */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/ajustes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Ajuste de inventário de um lote, com justificativa obrigatória */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            produto_id: string;
+            /** Format: uuid */
+            lote_id: string;
+            saldo_contado: number;
+            justificativa: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Sucesso */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Produto'];
+          };
+        };
+        /** @description Saldo contado igual ao do sistema */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/movimentacoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Histórico de entradas, retiradas e ajustes da unidade (máx. 300, mais recentes primeiro) */
+    get: {
+      parameters: {
+        query?: {
+          tipo?: 'entrada' | 'retirada' | 'ajuste';
+          produto?: string;
+          inicio?: string;
+          fim?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Movimentacao'][];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/alertas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Produtos abaixo do mínimo e com validade em até 30 dias (ou vencidos) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              abaixo_minimo: components['schemas']['Produto'][];
+              vencendo: components['schemas']['Produto'][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/resumo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Indicadores do topo da tela (valores em dinheiro só para a administração) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['EstoqueResumo'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/estoque/custo-por-os': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Material consumido por OS — ranking do mês ou, com os_id, o detalhe de uma OS */
+    get: {
+      parameters: {
+        query?: {
+          os_id?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sucesso */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CustoPorOs'];
+          };
+        };
+        /** @description Só a administração do laboratório */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
           };
         };
       };
@@ -3276,7 +5736,7 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    /** Move no quadro (agendada → confirmada → chegou → em_atendimento → concluida; faltou) e grava histórico */
+    /** Move no quadro e grava histórico. Secretaria — confirmada, chegou, faltou. Dentista da consulta — concluida */
     patch: {
       parameters: {
         query?: never;
@@ -3290,7 +5750,7 @@ export interface paths {
         content: {
           'application/json': {
             /** @enum {string} */
-            status: 'confirmada' | 'chegou' | 'em_atendimento' | 'concluida' | 'faltou';
+            status: 'confirmada' | 'chegou' | 'concluida' | 'faltou';
           };
         };
       };
@@ -3306,6 +5766,15 @@ export interface paths {
         };
         /** @description Status inválido (cancelamento usa /cancelar) */
         400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['Erro'];
+          };
+        };
+        /** @description Perfil não pode fazer esta mudança (concluir é só do dentista da consulta) */
+        403: {
           headers: {
             [name: string]: unknown;
           };
@@ -4035,9 +6504,7 @@ export interface components {
     PacienteResumo: {
       paciente: components['schemas']['Paciente'];
       proximas_consultas: components['schemas']['ConsultaProxima'][];
-      os_em_aberto: {
-        [key: string]: unknown;
-      }[];
+      os_em_aberto: components['schemas']['OsResumoPaciente'][];
     };
     CampoRevelado: {
       campo: string;
@@ -4140,6 +6607,500 @@ export interface components {
       url: string;
       /** @description Mascarado */
       celular: string;
+    };
+    OsPessoa: {
+      /** Format: uuid */
+      id?: string | null;
+      nome: string;
+    };
+    OrdemServico: {
+      /** Format: uuid */
+      id: string;
+      numero: string;
+      /** @enum {string} */
+      origem: 'propria' | 'externa';
+      /** @enum {string} */
+      status: 'aberta' | 'concluida' | 'cancelada';
+      /** @enum {string|null} */
+      etapa?: 'pre_laboratorio' | 'envio' | 'laboratorio' | 'retorno' | 'concluida' | null;
+      /** @enum {string|null} */
+      etapa_producao?:
+        'recebida' | 'modelo' | 'estrutura' | 'prova' | 'acabamento' | 'pronta' | 'enviada' | null;
+      tipo_trabalho: string;
+      elementos: number[];
+      cor?: string | null;
+      material?: string | null;
+      /** @enum {string|null} */
+      laboratorio?: 'proprio' | null;
+      /** Format: date */
+      previsao_entrega?: string | null;
+      /** Format: date-time */
+      enviado_em?: string | null;
+      /** Format: date-time */
+      concluida_em?: string | null;
+      /** Format: date-time */
+      cancelada_em?: string | null;
+      motivo_cancelamento?: string | null;
+      /** Format: date-time */
+      criado_em: string;
+      cliente: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+        /** @enum {string} */
+        tipo: 'interno' | 'externo';
+      };
+      paciente: components['schemas']['OsPessoa'];
+      dentista?: components['schemas']['OsPessoa'] | null;
+      tecnico?: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+      } | null;
+      prazo: {
+        /** @enum {string} */
+        situacao: 'atrasada' | 'a_vencer' | 'no_prazo' | 'sem_prazo' | 'concluida' | 'cancelada';
+        dias?: number | null;
+      };
+      refacoes: number;
+      provas: number;
+      prova_aberta: boolean;
+      /** @description Só para a administração do laboratório */
+      valor?: number | null;
+      observacoes?: string | null;
+    };
+    OsProva: {
+      /** Format: uuid */
+      id: string;
+      numero: number;
+      /** Format: date-time */
+      enviada_em: string;
+      /** Format: date-time */
+      devolvida_em?: string | null;
+      /** @enum {string|null} */
+      resultado?: 'aprovada' | 'ajuste' | null;
+      motivo?: string | null;
+      usuario_nome?: string | null;
+    };
+    OsRefacao: {
+      /** Format: uuid */
+      id: string;
+      numero: number;
+      motivo: string;
+      /** Format: date-time */
+      data: string;
+      usuario_nome?: string | null;
+    };
+    OrdemServicoDetalhe: components['schemas']['OrdemServico'] & {
+      historico_provas: components['schemas']['OsProva'][];
+      historico_refacoes: components['schemas']['OsRefacao'][];
+    };
+    OsHistorico: {
+      /** @enum {string} */
+      lado: 'clinica' | 'laboratorio' | 'status';
+      de_etapa?: string | null;
+      para_etapa: string;
+      observacao?: string | null;
+      /** Format: date-time */
+      em: string;
+      usuario_nome?: string | null;
+    };
+    OsAnexo: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      os_id: string;
+      tipo: string;
+      nome: string;
+      mime: string;
+      tamanho: number;
+      /** Format: date-time */
+      criado_em: string;
+      enviado_por?: string | null;
+    };
+    OsEntrada: {
+      tipo_trabalho: string;
+      elementos?: number[];
+      cor?: string | null;
+      material?: string | null;
+      observacoes?: string | null;
+      /** Format: date */
+      previsao_entrega?: string | null;
+      /** Format: uuid */
+      paciente_id?: string;
+      /** Format: uuid */
+      profissional_id?: string | null;
+      /** @enum {string|null} */
+      laboratorio?: 'proprio' | null;
+      /** Format: uuid */
+      cliente_id?: string;
+      paciente_nome?: string;
+      dentista_nome?: string | null;
+    };
+    LabCliente: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'interno' | 'externo';
+      razao_social: string;
+      /** @enum {string|null} */
+      documento_tipo?: 'cnpj' | 'cpf' | null;
+      /** @description Mascarado */
+      documento?: string | null;
+      responsavel?: string | null;
+      cro?: string | null;
+      /** @description Mascarado */
+      telefone?: string | null;
+      email?: string | null;
+      endereco?: components['schemas']['Endereco'] | null;
+      condicao_pagamento?: string | null;
+      ativo: boolean;
+      /** Format: date-time */
+      criado_em: string;
+      os_abertas: number;
+    };
+    LabClienteEntrada: {
+      razao_social?: string;
+      documento?: string | null;
+      responsavel?: string | null;
+      cro?: string | null;
+      telefone?: string | null;
+      email?: string | null;
+      endereco?: components['schemas']['Endereco'] | null;
+      condicao_pagamento?: string | null;
+      ativo?: boolean;
+    };
+    LabCaderno: {
+      cliente: components['schemas']['LabCliente'];
+      indicadores: {
+        os_abertas: number;
+        entregues_mes: number;
+        no_prazo_pct?: number | null;
+        refacoes_mes: number;
+      };
+      em_producao: components['schemas']['OrdemServico'][];
+      entregues: components['schemas']['OrdemServico'][];
+    };
+    Preco: {
+      /** Format: uuid */
+      id: string;
+      tipo_trabalho: string;
+      /** Format: uuid */
+      cliente_id?: string | null;
+      cliente_nome?: string | null;
+      valor: number;
+      /** Format: date */
+      vigencia_inicio: string;
+    };
+    OsResumoPaciente: {
+      /** Format: uuid */
+      id: string;
+      numero: string;
+      tipo_trabalho: string;
+      /** @enum {string} */
+      etapa: 'pre_laboratorio' | 'envio' | 'laboratorio' | 'retorno' | 'concluida';
+      /** Format: date */
+      previsao_entrega?: string | null;
+    };
+    Lote: {
+      /** Format: uuid */
+      id: string;
+      lote: string;
+      /** Format: date */
+      validade?: string | null;
+      saldo: number;
+    };
+    Produto: {
+      /** Format: uuid */
+      id: string;
+      nome: string;
+      codigo: string;
+      categoria?: string | null;
+      unidade_medida: string;
+      estoque_minimo: number;
+      fornecedor?: string | null;
+      ativo: boolean;
+      saldo: number;
+      /** @enum {string} */
+      situacao: 'abaixo_minimo' | 'vencido' | 'vencendo' | 'normal';
+      /** Format: date */
+      proxima_validade?: string | null;
+      lotes: components['schemas']['Lote'][];
+      /** @description Só para a administração */
+      custo_medio?: number;
+      /** @description Só para a administração */
+      valor?: number;
+    };
+    ProdutoEntrada: {
+      nome?: string;
+      codigo?: string;
+      categoria?: string | null;
+      unidade_medida?: string;
+      estoque_minimo?: number;
+      fornecedor?: string | null;
+      ativo?: boolean;
+    };
+    Movimentacao: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'entrada' | 'retirada' | 'ajuste';
+      quantidade: number;
+      saldo_apos: number;
+      /** @description Só para a administração */
+      custo?: number;
+      /** @enum {string|null} */
+      motivo?: 'producao' | 'uso' | 'perda' | 'refacao' | 'vencimento' | null;
+      justificativa?: string | null;
+      fornecedor?: string | null;
+      nota_fiscal?: string | null;
+      /** Format: date-time */
+      em: string;
+      produto: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+        unidade_medida: string;
+      };
+      lote: string;
+      usuario_nome?: string | null;
+      os?: {
+        /** Format: uuid */
+        id: string;
+        numero: string;
+      } | null;
+    };
+    EstoqueResumo: {
+      abaixo_minimo: number;
+      lotes_vencendo: number;
+      retiradas_hoje: number;
+      retiradas_hoje_os: number;
+      valor_estoque?: number;
+      consumo_mes?: number;
+      os_no_mes?: number;
+    };
+    CustoPorOs: {
+      ranking?: {
+        /** Format: uuid */
+        id: string;
+        numero: string;
+        tipo_trabalho: string;
+        total: number;
+        retiradas: number;
+      }[];
+      /** Format: uuid */
+      os_id?: string;
+      total?: number;
+      itens?: {
+        /** Format: date-time */
+        em: string;
+        produto_nome: string;
+        unidade_medida: string;
+        quantidade: number;
+        custo: number;
+        total: number;
+        motivo?: string | null;
+        usuario_nome?: string | null;
+      }[];
+    };
+    /** @enum {string} */
+    FormaPagamento: 'pix' | 'dinheiro' | 'credito' | 'debito' | 'boleto' | 'transferencia';
+    CategoriaFinanceira: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'receita' | 'despesa';
+      nome: string;
+      chave?: string | null;
+    };
+    Lancamento: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      tipo: 'receita' | 'despesa';
+      descricao: string;
+      valor: number;
+      valor_pago: number;
+      saldo: number;
+      /** Format: date */
+      vencimento: string;
+      /** Format: date */
+      pagamento?: string | null;
+      forma?: components['schemas']['FormaPagamento'] | null;
+      /** @enum {string} */
+      situacao: 'aberto' | 'parcial' | 'pago' | 'cancelado';
+      atrasado: boolean;
+      parcela?: number | null;
+      parcelas?: number | null;
+      /** @enum {string|null} */
+      recorrencia?: 'mensal' | null;
+      motivo_cancelamento?: string | null;
+      /** Format: date-time */
+      criado_em: string;
+      categoria: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+      };
+      paciente?: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+      } | null;
+      cliente?: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+      } | null;
+      os?: {
+        /** Format: uuid */
+        id: string;
+        numero: string;
+      } | null;
+      baixas?: {
+        /** Format: uuid */
+        id: string;
+        valor: number;
+        /** Format: date */
+        data: string;
+        forma: components['schemas']['FormaPagamento'];
+        usuario_nome?: string | null;
+      }[];
+    };
+    LancamentoEntrada: {
+      /** @enum {string} */
+      tipo?: 'receita' | 'despesa';
+      /** Format: uuid */
+      categoria_id?: string;
+      descricao?: string;
+      valor?: number;
+      /** Format: date */
+      vencimento?: string;
+      forma?: components['schemas']['FormaPagamento'] | null;
+      /** Format: uuid */
+      paciente_id?: string | null;
+      /** Format: uuid */
+      cliente_id?: string | null;
+      parcelas?: number;
+      /** @enum {string|null} */
+      recorrencia?: 'mensal' | null;
+      repeticoes?: number;
+      baixa?: {
+        forma: components['schemas']['FormaPagamento'];
+        /** Format: date */
+        data?: string;
+      };
+    };
+    ValoresFluxo: {
+      realizado: number;
+      em_aberto: number;
+      previsto: number;
+    };
+    FluxoCaixa: {
+      /** Format: date */
+      inicio: string;
+      /** Format: date */
+      fim: string;
+      receitas: components['schemas']['ValoresFluxo'];
+      despesas: components['schemas']['ValoresFluxo'];
+      saldo: {
+        realizado: number;
+        previsto: number;
+      };
+      semanas: {
+        /** Format: date */
+        inicio: string;
+        /** Format: date */
+        fim: string;
+        receitas: number;
+        despesas: number;
+        a_receber: number;
+        a_pagar: number;
+      }[];
+    };
+    ContasEmAberto: {
+      total: number;
+      atrasado: number;
+      itens: components['schemas']['Lancamento'][];
+      por_cliente?: {
+        /** Format: uuid */
+        id: string;
+        nome: string;
+        /** @enum {string} */
+        tipo: 'interno' | 'externo';
+        faturado: number;
+        recebido: number;
+        a_receber: number;
+        /** Format: date */
+        vencimento?: string | null;
+      }[];
+    };
+    TotaisCaixa: {
+      por_forma: {
+        [key: string]: number;
+      };
+      entradas: number;
+      saidas: number;
+      saldo: number;
+      movimentos: number;
+    };
+    Caixa: {
+      /** Format: uuid */
+      id?: string | null;
+      /** Format: date */
+      data: string;
+      /** @enum {string} */
+      situacao: 'aberto' | 'fechado';
+      totais: components['schemas']['TotaisCaixa'];
+      /** Format: date-time */
+      fechado_em?: string | null;
+      fechado_por?: string | null;
+      /** Format: date-time */
+      reaberto_em?: string | null;
+      reaberto_por?: string | null;
+      justificativa?: string | null;
+    };
+    Extrato: {
+      cliente: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        tipo: 'interno' | 'externo';
+        razao_social: string;
+        documento_tipo?: string | null;
+        documento?: string | null;
+        responsavel?: string | null;
+        cro?: string | null;
+        endereco?: components['schemas']['Endereco'] | null;
+      };
+      /** Format: date */
+      inicio: string;
+      /** Format: date */
+      fim: string;
+      os_concluidas: number;
+      total: number;
+      itens: {
+        /** Format: uuid */
+        id: string;
+        numero: string;
+        tipo_trabalho: string;
+        elementos: number[];
+        valor?: number | null;
+        /** Format: date */
+        data: string;
+        paciente: string;
+      }[];
+      resumo: {
+        tipo_trabalho: string;
+        quantidade: number;
+        total: number;
+      }[];
+      pagamento: {
+        recebido: number;
+        a_receber: number;
+        /** Format: date */
+        vencimento?: string | null;
+      };
     };
   };
   responses: never;

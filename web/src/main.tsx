@@ -14,6 +14,9 @@ import './styles/proto.css';
 import './styles/app.css';
 import './styles/agenda.css';
 import './styles/clinica.css';
+import './styles/os.css';
+import './styles/estoque.css';
+import './styles/financeiro.css';
 
 // Mensagens de validação dos formulários em português.
 z.config(z.locales.ptBR());

@@ -21,6 +21,10 @@ const agendaRoutes = require('./modules/agenda/agenda.routes');
 const prontuarioRoutes = require('./modules/prontuario/prontuario.routes');
 const procedimentosRoutes = require('./modules/prontuario/procedimentos.routes');
 const anexosRoutes = require('./modules/prontuario/anexos.routes');
+const osRoutes = require('./modules/ordens-servico/os.routes');
+const labClientesRoutes = require('./modules/ordens-servico/clientes.routes');
+const estoqueRoutes = require('./modules/estoque/estoque.routes');
+const financeiroRoutes = require('./modules/financeiro/financeiro.routes');
 
 // Mensagens de validação em português.
 z.config(z.locales.ptBR());
@@ -67,6 +71,13 @@ app.use('/api/v1/procedimentos-paciente', procedimentosRoutes.procedimentosPacie
 app.use('/api/v1/planos-tratamento', procedimentosRoutes.planos);
 app.use('/api/v1/anexos', anexosRoutes.anexos);
 app.use('/api/v1/arquivos', anexosRoutes.arquivos);
+// Ordens de serviço (M3): clínica e laboratório no mesmo router; clientes e preços só do laboratório.
+app.use('/api/v1/ordens-servico', osRoutes);
+app.use('/api/v1/laboratorio', labClientesRoutes);
+// Estoque (M5): um router para as duas unidades; a unidade vem do usuário logado.
+app.use('/api/v1/estoque', estoqueRoutes);
+// Financeiro (M6): só administração; a unidade vem do usuário logado.
+app.use('/api/v1/financeiro', financeiroRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada.' });

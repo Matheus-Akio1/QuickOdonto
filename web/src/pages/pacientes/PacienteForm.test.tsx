@@ -28,13 +28,20 @@ function montar() {
   return { aoFechar, user: userEvent.setup() };
 }
 
+/** Nascimento e celular são obrigatórios no cadastro novo (prancha "Pacientes · novo paciente"). */
+async function preencherObrigatorios(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/nascimento/i), '2015-03-10');
+  await user.type(screen.getByLabelText(/celular \/ whatsapp/i), '11987654321');
+}
+
 describe('formulário de paciente', () => {
   beforeEach(() => post.mockReset());
 
   it('RN-001: sem CPF exige responsável e não envia nada', async () => {
     const { user } = montar();
     await user.type(screen.getByLabelText(/nome completo/i), 'Maria da Silva');
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await preencherObrigatorios(user);
+    await user.click(screen.getByRole('button', { name: 'Salvar paciente' }));
     expect(await screen.findByText('Sem CPF, informe o responsável.')).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
@@ -43,7 +50,8 @@ describe('formulário de paciente', () => {
     const { user } = montar();
     await user.type(screen.getByLabelText(/nome completo/i), 'Maria da Silva');
     await user.type(screen.getByLabelText('CPF'), '52998224726');
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await preencherObrigatorios(user);
+    await user.click(screen.getByRole('button', { name: 'Salvar paciente' }));
     expect(await screen.findByText('CPF inválido.')).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
@@ -51,9 +59,9 @@ describe('formulário de paciente', () => {
   it('aplica máscara de CPF e celular enquanto digita', async () => {
     const { user } = montar();
     await user.type(screen.getByLabelText('CPF'), '52998224725');
-    await user.type(screen.getByLabelText('Celular'), '11987654321');
+    await user.type(screen.getByLabelText(/celular \/ whatsapp/i), '11987654321');
     expect(screen.getByLabelText('CPF')).toHaveValue('529.982.247-25');
-    expect(screen.getByLabelText('Celular')).toHaveValue('(11) 98765-4321');
+    expect(screen.getByLabelText(/celular \/ whatsapp/i)).toHaveValue('(11) 98765-4321');
   });
 
   it('envia só dígitos e nulos para o que ficou vazio (menor com responsável, sem CPF)', async () => {
@@ -63,9 +71,10 @@ describe('formulário de paciente', () => {
     });
     const { user } = montar();
     await user.type(screen.getByLabelText(/nome completo/i), 'Edu Menor');
+    await preencherObrigatorios(user);
     await user.type(screen.getByLabelText('Nome do responsável'), 'Mãe do Edu');
     await user.type(screen.getByLabelText('Celular do responsável'), '11911112222');
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await user.click(screen.getByRole('button', { name: 'Salvar paciente' }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     const [rota, { body }] = post.mock.calls[0];
@@ -75,6 +84,8 @@ describe('formulário de paciente', () => {
       cpf: null,
       email: null,
       endereco: null,
+      nascimento: '2015-03-10',
+      celular: '11987654321',
       responsavel_nome: 'Mãe do Edu',
       responsavel_celular: '11911112222',
     });

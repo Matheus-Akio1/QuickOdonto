@@ -19,7 +19,7 @@ interface Props {
   faixa?: ReactNode;
 }
 
-/** Situação do paciente na agenda de hoje — é o que acende o selo "Em atendimento". */
+/** Paciente que já chegou hoje e ainda não teve o atendimento concluído. */
 function useSituacaoHoje(pacienteId: string) {
   const inicio = isoLocal(hoje(), '00:00');
   const fim = isoLocal(somarDias(hoje(), 1), '00:00');
@@ -43,13 +43,7 @@ export function CartaoPaciente({ paciente, children, faixa }: Props) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <h2 className="disp pac-nome">{paciente.nome}</h2>
-            {situacao === 'em_atendimento' && (
-              <span className="badge b-info" style={{ gap: 9 }}>
-                <span className="pulse" />
-                Em atendimento
-              </span>
-            )}
-            {situacao === 'chegou' && <span className="badge b-warn">Na sala de espera</span>}
+            {situacao && <span className="badge b-warn">Chegou · aguardando atendimento</span>}
             {paciente.ativo === false && <span className="badge b-mut">Inativo</span>}
           </div>
           <span style={{ fontSize: 14, color: 'var(--ink-3)' }}>

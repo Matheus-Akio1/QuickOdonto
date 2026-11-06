@@ -28,8 +28,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
+    environment:
+      PORT: 3001
     ports:
-      - '3000:3000'
+      - '3001:3001'
     volumes:
       - ./src:/app/src
       - ./migrations:/app/migrations
@@ -50,7 +52,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      API_PROXY_TARGET: http://api:3000
+      API_PROXY_TARGET: http://api:3001
     ports:
       - '5173:5173'
     volumes:

@@ -81,7 +81,7 @@ export function AnexosTab({ pacienteId }: { pacienteId: string }) {
 
   return (
     <div className="stack">
-      <section className="card">
+      <section className="card pad">
         <h2 style={{ marginBottom: 10 }}>Enviar anexo</h2>
         <div className="form-grid">
           <label className="field">

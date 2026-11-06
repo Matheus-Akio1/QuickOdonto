@@ -1,0 +1,257 @@
+/* ---------- Estoque (pranchas "Laboratório · estoque" e "Adm. · estoque") ---------- */
+.est-layout {
+  display: flex;
+  gap: 20px;
+  flex-grow: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+.est-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-grow: 1;
+  min-width: 0;
+}
+.est-lateral {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.est-indicadores {
+  display: grid;
+  gap: 14px;
+}
+.est-ind {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.est-ind .cab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.est-ind .cab i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.est-ind .valor {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+.est-ind .nota {
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+.est-abas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 0 8px;
+  border-bottom: 1px solid var(--line);
+  min-height: 52px;
+  flex-wrap: wrap;
+}
+.est-abas .tabs {
+  border-bottom: 0;
+  flex-grow: 1;
+  align-self: stretch;
+}
+.est-grade {
+  display: grid;
+  column-gap: 12px;
+  align-items: center;
+  padding: 0 16px;
+}
+.est-grade.tec {
+  grid-template-columns: minmax(160px, 1fr) 170px 140px;
+}
+.est-grade.adm {
+  grid-template-columns: minmax(180px, 1fr) 170px 120px 140px 36px;
+}
+.est-grade.mov {
+  grid-template-columns: 120px minmax(0, 1.4fr) 110px minmax(0, 1fr) 130px;
+}
+.est-grade.inv {
+  grid-template-columns: minmax(0, 1fr) 130px 110px 110px 96px;
+}
+.est-grade.cab {
+  height: 40px;
+  background: #faf9f6;
+  border-bottom: 1px solid var(--line);
+}
+.est-linha {
+  min-height: 58px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #efede7;
+}
+.est-linha:hover {
+  background: #faf9f6;
+}
+.est-prod {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.est-prod b {
+  font-size: 14px;
+  line-height: 1.25;
+}
+.est-prod small {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.3;
+}
+.est-saldo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.est-saldo .nums {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.est-saldo .nums b {
+  font-size: 14px;
+}
+.est-saldo .nums small {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.est-barra {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: #eceae3;
+  width: 100%;
+}
+.est-barra > div {
+  height: 100%;
+  border-radius: 999px;
+}
+.est-barra > span {
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: var(--ink);
+  opacity: 0.55;
+  border-radius: 1px;
+}
+.est-rodape {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.est-painel-cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #efede7;
+}
+.est-painel-cab .ic {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.est-painel-corpo {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.est-aviso {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff5ea;
+  border: 1px solid #f0be96;
+  color: #7a3209;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.est-aviso.erro {
+  background: #fde7e4;
+  border-color: #f3b3ab;
+  color: #912018;
+}
+.est-custo-os {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid #efede7;
+}
+.est-movel-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #efede7;
+}
+.est-movel-linha .l1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.est-movel-linha .l1 b {
+  font-size: 15px;
+  flex-grow: 1;
+  min-width: 0;
+}
+/* Em notebook (até 1400px) o painel lateral desce para baixo da tabela: lado a lado ele a espreme. */
+@media (max-width: 1400px) {
+  .est-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .est-lateral {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .est-lateral > * {
+    flex: 1 1 340px;
+    max-width: 560px;
+  }
+}
+@media (max-width: 1100px) {
+  .est-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Ação principal do celular fica sempre à mão, acima da barra de navegação. */
+.est-acao-movel {
+  position: sticky;
+  bottom: 12px;
+  box-shadow: 0 8px 20px rgba(11, 61, 57, 0.22);
+}

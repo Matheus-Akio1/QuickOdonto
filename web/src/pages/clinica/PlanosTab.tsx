@@ -73,7 +73,7 @@ function CartaoPlano({ plano, pacienteId }: { plano: PlanoTratamento; pacienteId
   });
 
   return (
-    <section className="card">
+    <section className="card pad">
       <div className="card-head">
         <div>
           <h2>Plano de {fmtDataHora(plano.criado_em)}</h2>

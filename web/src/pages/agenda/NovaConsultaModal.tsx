@@ -165,7 +165,7 @@ export function NovaConsultaModal({
                     <li key={p.id}>
                       <Button
                         variante="secondary"
-                        className="btn-sm"
+                        className="sm"
                         style={{ width: '100%', justifyContent: 'space-between' }}
                         onClick={() => setPaciente({ id: p.id, nome: p.nome })}
                       >

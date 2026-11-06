@@ -12,7 +12,7 @@ module.exports = async () => {
   const db = knex({ ...knexfile, connection: { ...knexfile.connection, database: BANCO_TESTE } });
   await db.migrate.latest();
   await db.raw(
-    'TRUNCATE usuarios, perfis_permissoes, auditoria_logs, notificacoes, pacientes, bloqueios_agenda, procedimentos_catalogo, links_download RESTART IDENTITY CASCADE',
+    'TRUNCATE usuarios, perfis_permissoes, auditoria_logs, notificacoes, pacientes, bloqueios_agenda, procedimentos_catalogo, links_download, laboratorio_clientes, tabela_precos, produtos, lancamentos, caixas_diarios RESTART IDENTITY CASCADE',
   );
   await db.destroy();
 };

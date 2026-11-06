@@ -29,7 +29,7 @@ import { PacienteForm } from './PacienteForm';
 
 const LIMITE = 8;
 type Filtro = 'consulta_hoje' | 'sem_retorno' | 'menores';
-const COLUNAS = 'minmax(260px,1.7fr) 92px 100px 150px minmax(190px,1fr) 96px';
+const COLUNAS = 'minmax(200px,1.7fr) 88px 84px 140px minmax(170px,1fr) 84px';
 const maiuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function PacientesPage() {

@@ -236,7 +236,7 @@
 }
 .plano-linha {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) 96px 104px 104px 124px;
+  grid-template-columns: minmax(160px, 1.5fr) 80px 104px 104px 124px;
   column-gap: 14px;
   align-items: center;
   padding: 0 22px;
@@ -396,9 +396,14 @@ button.lt-titulo:hover {
   border-radius: var(--radius-s);
 }
 
-@media (max-width: 1100px) {
-  .odonto-grade,
+/* Em notebook (até 1400px) o plano e a linha do tempo não cabem lado a lado sem espremer a tabela. */
+@media (max-width: 1400px) {
   .resumo-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 1100px) {
+  .odonto-grade {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -434,5 +439,18 @@ button.lt-titulo:hover {
   }
   .plano-item > :first-child {
     grid-column: 1 / -1;
+  }
+}
+
+/* Anamnese: lista de versões ao lado do conteúdo; no celular, uma embaixo da outra. */
+.anam-grade {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 767px) {
+  .anam-grade {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

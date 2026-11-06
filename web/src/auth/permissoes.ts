@@ -3,7 +3,7 @@ import type { Perfil } from '../api/types';
 /**
  * Conveniência visual: o que cada perfil vê no menu e quais ações exibe.
  * Quem autoriza de verdade é sempre o servidor (403) — isto só evita mostrar o que não funciona.
- * Os menus seguem as pranchas do protótipo; itens de marcos futuros (OS, estoque, financeiro,
+ * Os menus seguem as pranchas do protótipo; itens de marcos futuros (financeiro,
  * relatórios) entram quando as telas existirem.
  */
 export interface ItemMenu {
@@ -17,7 +17,10 @@ export interface ItemMenu {
     | 'anamnese'
     | 'procedimentos'
     | 'usuarios'
-    | 'laboratorio';
+    | 'os'
+    | 'clientes'
+    | 'estoque'
+    | 'financeiro';
 }
 
 const MENUS: Record<Perfil, ItemMenu[]> = {
@@ -25,15 +28,28 @@ const MENUS: Record<Perfil, ItemMenu[]> = {
     { rota: '/pacientes', rotulo: 'Pacientes', icone: 'pacientes' },
     { rota: '/agenda', rotulo: 'Agenda', icone: 'agenda' },
     { rota: '/agenda/quadro', rotulo: 'Quadro do dia', icone: 'quadro' },
+    { rota: '/ordens-servico', rotulo: 'Ordens de serviço', icone: 'os' },
   ],
   clinica: [
     { rota: '/clinica/prontuario', rotulo: 'Prontuário', icone: 'prontuario' },
     { rota: '/clinica/anamnese', rotulo: 'Anamnese', icone: 'anamnese' },
     { rota: '/clinica/procedimentos', rotulo: 'Procedimentos', icone: 'procedimentos' },
   ],
-  adm_clinica: [{ rota: '/admin/clinica', rotulo: 'Usuários', icone: 'usuarios' }],
-  laboratorio: [{ rota: '/lab', rotulo: 'Laboratório', icone: 'laboratorio' }],
-  adm_laboratorio: [{ rota: '/admin/lab', rotulo: 'Usuários', icone: 'usuarios' }],
+  adm_clinica: [
+    { rota: '/admin/clinica/financeiro', rotulo: 'Financeiro', icone: 'financeiro' },
+    { rota: '/admin/clinica/estoque', rotulo: 'Estoque', icone: 'estoque' },
+    { rota: '/admin/clinica', rotulo: 'Usuários', icone: 'usuarios' },
+  ],
+  laboratorio: [
+    { rota: '/lab/producao', rotulo: 'Ordens de serviço', icone: 'os' },
+    { rota: '/lab/clientes', rotulo: 'Clientes', icone: 'clientes' },
+    { rota: '/lab/estoque', rotulo: 'Estoque', icone: 'estoque' },
+  ],
+  adm_laboratorio: [
+    { rota: '/admin/lab/financeiro', rotulo: 'Financeiro', icone: 'financeiro' },
+    { rota: '/admin/lab/estoque', rotulo: 'Estoque', icone: 'estoque' },
+    { rota: '/admin/lab', rotulo: 'Usuários', icone: 'usuarios' },
+  ],
 };
 
 export const menuDoPerfil = (perfil: Perfil): ItemMenu[] => MENUS[perfil];

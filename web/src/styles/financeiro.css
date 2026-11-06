@@ -1,0 +1,426 @@
+/* ---------- Financeiro (pranchas "Adm. Clínica · financeiro" e "Adm. Laboratório · financeiro") ---------- */
+.fin-barra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  min-height: 52px;
+  flex-wrap: wrap;
+}
+.fin-barra .tabs {
+  border-bottom: 0;
+  flex-grow: 1;
+}
+.fin-mes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 38px;
+  padding: 0 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fin-mes span {
+  min-width: 118px;
+  text-align: center;
+}
+.fin-mes button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+}
+.fin-mes button:hover {
+  background: var(--neutral-soft);
+}
+.fin-tres {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.fin-ind {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.fin-ind .cab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fin-ind .cab i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.fin-ind .valor {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+.fin-ind .nota {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 14px;
+  row-gap: 2px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.fin-ind .nota b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.fin-layout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.fin-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.fin-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 340px;
+  flex-shrink: 0;
+}
+.fin-card-cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  flex-wrap: wrap;
+}
+.fin-card-cab .sub {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.fin-card-corpo {
+  padding: 0 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Gráfico de barras por semana */
+.fin-legenda {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.fin-legenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.fin-legenda i {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+.fin-graf {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 10px;
+  padding: 6px 20px 16px;
+}
+.fin-eixo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 120px;
+  text-align: right;
+  font-size: 11px;
+  color: #8a9490;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.fin-area {
+  position: relative;
+}
+.fin-linhas {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.fin-linhas div {
+  height: 1px;
+  background: #efede7;
+}
+.fin-semanas {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 12px;
+}
+.fin-semana {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.fin-barras {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  height: 120px;
+}
+.fin-pilha {
+  width: 30px;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100%;
+}
+.fin-pilha .solida {
+  border-radius: 5px 5px 0 0;
+}
+.fin-pilha .rec {
+  background: #0f6b63;
+}
+.fin-pilha .desp {
+  background: #de6b2f;
+}
+.fin-pilha .a-rec,
+.fin-legenda .a-rec {
+  border: 1.5px dashed #6fb5a8;
+  background: repeating-linear-gradient(135deg, #cde6e0 0 4px, #fff 4px 8px);
+}
+.fin-pilha .a-pag,
+.fin-legenda .a-pag {
+  border: 1.5px dashed #e9a57a;
+  background: repeating-linear-gradient(135deg, #f7cdb2 0 4px, #fff 4px 8px);
+}
+.fin-pilha .a-rec,
+.fin-pilha .a-pag {
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+}
+.fin-semana small {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Listas */
+.fin-grade {
+  display: grid;
+  column-gap: 12px;
+  align-items: center;
+  padding: 0 20px;
+}
+.fin-grade.lanc {
+  grid-template-columns: 62px minmax(140px, 1fr) 104px 124px;
+}
+.fin-grade.lanc.acoes {
+  grid-template-columns: 62px minmax(160px, 1fr) 104px 124px 200px;
+}
+.fin-grade.cli {
+  grid-template-columns: minmax(150px, 1fr) 112px 112px 112px 62px;
+}
+.fin-grade.cab {
+  height: 40px;
+  background: #faf9f6;
+  border-top: 1px solid #efede7;
+  border-bottom: 1px solid var(--line);
+}
+.fin-linha {
+  min-height: 56px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #efede7;
+}
+.fin-linha:hover {
+  background: #faf9f6;
+}
+.fin-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.fin-desc b {
+  font-size: 14px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fin-desc small {
+  font-size: 12px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fin-valor {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  justify-self: end;
+}
+.fin-valor.pos {
+  color: #067647;
+}
+.fin-acoes {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.fin-par {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.fin-par span {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.fin-par b {
+  font-variant-numeric: tabular-nums;
+}
+.fin-forma {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fin-trilho {
+  height: 6px;
+  border-radius: 999px;
+  background: #eceae3;
+  overflow: hidden;
+}
+.fin-trilho div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+.fin-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #efede7;
+}
+.fin-total b {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.fin-conta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #efede7;
+}
+.fin-saldo-movel {
+  background: var(--petroleo);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #bfd9d2;
+  font-size: 13px;
+}
+.fin-saldo-movel .rot {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #8db5ad;
+}
+.fin-saldo-movel .valor {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: #fff;
+}
+.fin-movel-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 6px 14px;
+  border-top: 1px solid #efede7;
+  width: 100%;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.fin-movel-linha .fin-valor {
+  margin-left: auto;
+}
+
+/* Em notebook o painel lateral desce para baixo (lição 13). */
+@media (max-width: 1400px) {
+  .fin-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fin-lateral {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .fin-lateral > * {
+    flex: 1 1 300px;
+  }
+}
+@media (max-width: 767px) {
+  .fin-tres {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .fin-ind .valor {
+    font-size: 22px;
+  }
+  .fin-legenda {
+    margin-left: 0;
+  }
+}
+.fin-grade.ext {
+  grid-template-columns: 54px 70px minmax(110px, 1fr) minmax(130px, 1.3fr) 70px 104px;
+  font-size: 13px;
+}

@@ -13,4 +13,13 @@ function mascararCelular(cel) {
   return `(${d.slice(0, 2)}) *****-${d.slice(-4)}`;
 }
 
-module.exports = { mascararCpf, mascararCelular };
+/** CNPJ: esconde os 2 primeiros e os 2 últimos dígitos (como na prancha dos cadernos). */
+function mascararCnpj(cnpj) {
+  const d = somenteDigitos(cnpj);
+  return d.length === 14 ? `**.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-**` : null;
+}
+
+/** Documento do cliente do laboratório: CNPJ ou CPF, sempre mascarado. */
+const mascararDocumento = (doc) => mascararCnpj(doc) || mascararCpf(doc);
+
+module.exports = { mascararCpf, mascararCelular, mascararCnpj, mascararDocumento };

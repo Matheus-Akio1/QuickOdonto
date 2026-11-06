@@ -22,12 +22,6 @@ export function Abas({
           type="button"
           role="tab"
           className={`tab ${a.id === ativa ? 'on' : ''}`}
-          style={{
-            background: 'none',
-            border: 0,
-            borderBottom: '2px solid transparent',
-            whiteSpace: 'nowrap',
-          }}
           aria-selected={a.id === ativa}
           onClick={() => onMudar(a.id)}
         >

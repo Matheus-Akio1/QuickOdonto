@@ -1,3 +1,5 @@
+import { Cabecalho } from '../../layout/Cabecalho';
+import { CartaoPaciente } from './CartaoPaciente';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -77,13 +79,13 @@ export function AnamnesePage() {
 
   if (versoes.error)
     return (
-      <div className="page">
+      <div className="content" style={{ paddingTop: 28 }}>
         <ErroCarga erro={versoes.error} onTentar={() => versoes.refetch()} />
       </div>
     );
   if (!versoes.data || !resumo.data)
     return (
-      <div className="page">
+      <div className="content" style={{ paddingTop: 28 }}>
         <Carregando />
       </div>
     );
@@ -92,119 +94,127 @@ export function AnamnesePage() {
   const ehUltima = a && versoes.data[0]?.id === a.id;
 
   return (
-    <div className="page">
-      <div className="page-head">
-        <div>
-          <p>
-            <Link to={`/clinica/prontuario/${id}`}>← Prontuário</Link>
-          </p>
-          <h1>Anamnese — {resumo.data.paciente.nome}</h1>
-          <p>Cada registro cria uma nova versão; as anteriores ficam preservadas.</p>
-        </div>
-        {!editando && (
-          <Button onClick={() => setEditando(true)}>
-            {versoes.data.length ? 'Nova versão' : 'Registrar anamnese'}
-          </Button>
-        )}
-      </div>
+    <>
+      <Cabecalho trilha="Clínica / Anamnese" titulo="Anamnese" />
+      <div className="content">
+        <CartaoPaciente paciente={resumo.data.paciente}>
+          <Link className="btn" to={`/clinica/prontuario/${id}`}>
+            Abrir prontuário
+          </Link>
+          {!editando && (
+            <Button onClick={() => setEditando(true)}>
+              {versoes.data.length ? 'Nova versão' : 'Registrar anamnese'}
+            </Button>
+          )}
+        </CartaoPaciente>
+        <p className="muted" style={{ marginTop: -6 }}>
+          Cada registro cria uma nova versão; as anteriores ficam preservadas.
+        </p>
 
-      {editando ? (
-        <FormAnamnese
-          pacienteId={id}
-          base={versoes.data.length ? a : undefined}
-          onFechar={() => setEditando(false)}
-          aoSalvar={(nova) => {
-            setSelecionada(nova.id);
-            setEditando(false);
-          }}
-        />
-      ) : !versoes.data.length ? (
-        <div className="card">
-          <Vazio titulo="Nenhuma anamnese registrada">
-            Registre a anamnese antes do primeiro procedimento.
-          </Vazio>
-        </div>
-      ) : (
-        <div className="grid-2" style={{ gridTemplateColumns: 'minmax(220px, 280px) 1fr' }}>
-          <nav className="card" aria-label="Versões">
-            <h2 style={{ marginBottom: 10 }}>Versões</h2>
-            <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0, gap: 6 }}>
-              {versoes.data.map((v) => (
-                <li key={v.id}>
-                  <button
-                    type="button"
-                    className={`btn ${v.id === atualId ? '' : 'btn-secondary'}`}
-                    style={{
-                      width: '100%',
-                      justifyContent: 'space-between',
-                      height: 'auto',
-                      padding: '8px 12px',
-                    }}
-                    aria-current={v.id === atualId}
-                    onClick={() => setSelecionada(v.id)}
-                  >
-                    <span>v{v.versao}</span>
-                    <span style={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                      {fmtDataHora(v.criado_em)}
-                      <br />
-                      {v.assinada_em ? 'Assinada' : 'Não assinada'}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        {editando ? (
+          <FormAnamnese
+            pacienteId={id}
+            base={versoes.data.length ? a : undefined}
+            onFechar={() => setEditando(false)}
+            aoSalvar={(nova) => {
+              setSelecionada(nova.id);
+              setEditando(false);
+            }}
+          />
+        ) : !versoes.data.length ? (
+          <div className="card">
+            <Vazio titulo="Nenhuma anamnese registrada">
+              Registre a anamnese antes do primeiro procedimento.
+            </Vazio>
+          </div>
+        ) : (
+          <div className="anam-grade">
+            <nav className="card pad" aria-label="Versões">
+              <h2 style={{ marginBottom: 10 }}>Versões</h2>
+              <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0, gap: 6 }}>
+                {versoes.data.map((v) => (
+                  <li key={v.id}>
+                    <button
+                      type="button"
+                      className={`btn ${v.id === atualId ? 'sec' : ''}`}
+                      style={{
+                        width: '100%',
+                        justifyContent: 'space-between',
+                        height: 'auto',
+                        padding: '8px 12px',
+                      }}
+                      aria-current={v.id === atualId}
+                      onClick={() => setSelecionada(v.id)}
+                    >
+                      <span>v{v.versao}</span>
+                      <span style={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                        {fmtDataHora(v.criado_em)}
+                        <br />
+                        {v.assinada_em ? 'Assinada' : 'Não assinada'}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <section className="card">
-            {detalhe.error ? (
-              <ErroCarga erro={detalhe.error} />
-            ) : !a ? (
-              <Carregando />
-            ) : (
-              <div className="stack">
-                <div className="card-head" style={{ marginBottom: 0 }}>
-                  <div>
-                    <h2>Versão {a.versao}</h2>
-                    <p className="muted">
-                      {a.profissional_nome} · {fmtDataHora(a.criado_em)}
-                    </p>
-                  </div>
-                  {a.assinada_em ? (
-                    <span className="badge badge-ok">Assinada em {fmtDataHora(a.assinada_em)}</span>
-                  ) : (
-                    <span className="badge badge-warn">Não assinada</span>
-                  )}
-                </div>
-                {!ehUltima && (
-                  <div className="alert info">Versão anterior — mantida apenas para consulta.</div>
-                )}
-                <ExibirAnamnese anamnese={a} />
-                {!a.assinada_em && (
-                  <div className="row">
-                    <Button onClick={() => setAssinar(true)}>Assinar</Button>
-                    {a.profissional_nome !== usuario?.nome && (
-                      <span className="muted">Só o profissional que registrou pode assinar.</span>
+            <section className="card pad">
+              {detalhe.error ? (
+                <ErroCarga erro={detalhe.error} />
+              ) : !a ? (
+                <Carregando />
+              ) : (
+                <div className="stack">
+                  <div className="card-head" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h2>Versão {a.versao}</h2>
+                      <p className="muted">
+                        {a.profissional_nome} · {fmtDataHora(a.criado_em)}
+                      </p>
+                    </div>
+                    {a.assinada_em ? (
+                      <span className="badge badge-ok">
+                        Assinada em {fmtDataHora(a.assinada_em)}
+                      </span>
+                    ) : (
+                      <span className="badge badge-warn">Não assinada</span>
                     )}
                   </div>
-                )}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
+                  {!ehUltima && (
+                    <div className="alert info">
+                      Versão anterior — mantida apenas para consulta.
+                    </div>
+                  )}
+                  <ExibirAnamnese anamnese={a} />
+                  {!a.assinada_em && (
+                    <div className="row">
+                      <Button onClick={() => setAssinar(true)}>Assinar</Button>
+                      {a.profissional_nome !== usuario?.nome && (
+                        <span className="muted">Só o profissional que registrou pode assinar.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
 
-      {assinar && a && (
-        <ConfirmDialog
-          titulo={`Assinar a versão ${a.versao}?`}
-          confirmar="Assinar"
-          carregando={assinatura.isPending}
-          onCancelar={() => setAssinar(false)}
-          onConfirmar={() => assinatura.mutate(a.id)}
-        >
-          <p>Depois de assinada, a versão é definitiva. Mudanças futuras exigem uma nova versão.</p>
-        </ConfirmDialog>
-      )}
-    </div>
+        {assinar && a && (
+          <ConfirmDialog
+            titulo={`Assinar a versão ${a.versao}?`}
+            confirmar="Assinar"
+            carregando={assinatura.isPending}
+            onCancelar={() => setAssinar(false)}
+            onConfirmar={() => assinatura.mutate(a.id)}
+          >
+            <p>
+              Depois de assinada, a versão é definitiva. Mudanças futuras exigem uma nova versão.
+            </p>
+          </ConfirmDialog>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -323,7 +333,7 @@ function FormAnamnese({
   const alertaInvalido = alertas.some((a) => a.descricao.trim().length < 2);
 
   return (
-    <section className="card stack">
+    <section className="card pad stack">
       <h2>{base ? `Nova versão (a partir da v${base.versao})` : 'Primeira anamnese'}</h2>
       {erro && (
         <div className="alert" role="alert">

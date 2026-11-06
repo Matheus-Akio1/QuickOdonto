@@ -42,7 +42,9 @@ export function AgendaPage() {
   const edita = usuario ? podeAgendar(usuario.perfil) : false;
 
   const [visao, setVisao] = useState<'dia' | 'semana'>(
-    (local.state as { visao?: 'dia' | 'semana' } | null)?.visao ?? 'semana',
+    // No celular a semana inteira não cabe: a agenda abre no dia (a semana continua a um toque).
+    (local.state as { visao?: 'dia' | 'semana' } | null)?.visao ??
+      (window.matchMedia('(max-width: 767px)').matches ? 'dia' : 'semana'),
   );
   const [ancora, setAncora] = useState(hoje());
   const [fora, setFora] = useState<Set<string>>(new Set()); // profissionais desmarcados

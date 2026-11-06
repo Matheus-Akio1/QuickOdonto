@@ -1,28 +1,34 @@
-# Plano da tarefa atual — M4 (Prontuário) — backend e front concluídos
+# Plano da tarefa atual — M6 (Financeiro das duas unidades) — concluído em 12/10/2026
 
-Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seções 2.1, 3, 3.1, 3.2, 4.4, 5, 6.1 e 6.2.
+Referência: `CHECKLIST_DESENVOLVIMENTO.md`, seções 2.1 (Financeiro), 4.7, 5 (RN-007, 008, 011, 014) e 6.2.
+Pranchas lidas antes de codar (lição 10): `AdmFinanceiro`, `AdmLabFinanceiro`, `AdmLabExtrato`, `MobileFinanceiro`
+(`AdmExtratoProfissional` também foi lida; pertence ao "Relatório geral" da clínica — M7).
 
-## Feito
-1. [x] Backend do prontuário (ver checklist): RN-006 por trigger, acesso registrado, texto clínico e anexos cifrados
-2. [x] Front: `/clinica/prontuario/:id` (alertas, linha do tempo, evoluções/adendos, odontograma, plano, anexos, acessos, PDF),
-       `/clinica/anamnese/:id`, `/clinica/procedimentos` (+ aba Catálogo na administração da clínica)
-3. [x] Ligações: "Abrir prontuário" na ficha e no drawer da consulta (só dentista); menu "Procedimentos" para o dentista
-4. [x] Conteúdo clínico no front com `gcTime: 0` (não fica em memória depois de sair da tela)
-5. [x] 103 testes backend + 31 front; fluxo percorrido no navegador como Dentista, Secretaria e Adm. Clínica; celular conferido
-6. [x] Bugs achados na validação e corrigidos: arcada cortada/inalcançável, ordem dos itens do plano, PDF de anexo
-       sem visualizador (agora baixa), rolagem até o painel do dente no celular
+## Passos
+1. [x] Migration: `categorias_financeiras`, `lancamentos`, `lancamento_baixas`, `caixas_diarios` (RN-011 por trigger)
+2. [x] Backend `modules/financeiro`: fluxo de caixa, lançamentos (parcelas, recorrência, baixa, cancelamento), contas a receber/pagar, caixa do dia, extrato por cliente, recibo e extrato em PDF
+3. [x] Títulos automáticos: OS concluída, plano aprovado, entrada de estoque
+4. [x] Contrato OpenAPI + `tests/m6.test.js` (20) — suíte completa: 163 verdes (rodada duas vezes seguidas)
+5. [x] Seed `06_financeiro_dev.js`
+6. [x] Front: `/admin/clinica/financeiro` e `/admin/lab/financeiro` (uma página, abas por unidade) + celular
+7. [x] Navegador em 1280, 1440 e 375 px (lição 13): clínica — lançamento parcelado, fechar caixa, pagamento recusado (RN-011), reabrir; laboratório — fluxo, a receber, preços, extrato
+8. [x] Checklist atualizado; Vitest 53 verdes; build de produção ok
 
-## Pendências
-- [ ] Planos aprovados → contas a receber (M6)
-- [ ] Exportação xlsx de pacientes por link de uso único
-- [ ] Anexos de OS quando o M3 existir
-- [ ] Script de rotação de chave (formato já versionado: `v1:` / `QOA1`)
-- [ ] Backup do volume `anexos_data` junto com o Postgres (M9)
-- [ ] Playwright cobrindo login → prontuário → evolução (hoje validado à mão no navegador)
-- [ ] Próximo marco: M3 (ordens de serviço) ou M5 (estoque)
+## Não exercitado no navegador (coberto por teste de API)
+- Download do recibo e do extrato em PDF; baixa parcial; cancelamento; lançamento recorrente
+- "Lançar a compra no financeiro" na entrada de estoque; título gerado ao concluir OS e ao aprovar plano
+
+## Fora do M6
+- Comissões e Carnê-Leão (Desejável); abas "Transações" e "Comissões"; "Exportar"; XLSX e envio do extrato por e-mail
+- Estorno de baixa; período livre no fluxo de caixa; parcelar o título do plano de tratamento
+- OS concluídas antes do M6 não têm título (só as novas geram)
+- Próximo marco: M7 (relatórios), que inclui o extrato por profissional da clínica e o relatório de OS do laboratório
+
+## Pendências herdadas
+- [ ] Alinhamento ao protótipo: Anamnese, Procedimentos, Usuários (deixaram de estar quebrados, mas não seguem as pranchas)
+- [ ] Decisões do usuário: tela para o dentista ver/cancelar as OS que gerou; "Agendar prova/instalação"; divergências protótipo × regras listadas em 11/10/2026
+- [ ] Exportação xlsx por link; rotação de chave; backup de `anexos_data`; Playwright
 
 ## Observações
-- Testes rodam no container (`docker compose exec api npx jest --runInBand`) contra o banco **`quickodonto_test`** (criado e migrado pelo `tests/globalSetup.js`, truncado a cada execução) — nunca no de dev. O mailer é mockado.
-- E-mails de dev caem no Mailpit: http://localhost:8025 (`SMTP_HOST=mailpit` no `.env`).
-- Após instalar dependência nova: `docker compose up -d --build -V api` (o `-V` renova o volume anônimo de `node_modules`).
-- Seed de dev: usuários `*@quickodonto.test` por perfil; senha em `seeds/01_usuarios_dev.js` (só dev).
+- Testes rodam no container (`docker compose exec -T api npx jest --runInBand --forceExit`) contra `quickodonto_test`.
+- Seed de dev: usuários `*@quickodonto.test`; senha em `seeds/01_usuarios_dev.js` (só dev).

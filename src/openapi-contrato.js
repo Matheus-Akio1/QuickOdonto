@@ -35,6 +35,15 @@ const statusProcedimento = {
   enum: ['planejado', 'em_andamento', 'concluido', 'cancelado'],
 };
 
+const etapaOs = {
+  type: 'string',
+  enum: ['pre_laboratorio', 'envio', 'laboratorio', 'retorno', 'concluida'],
+};
+const etapaProducao = {
+  type: 'string',
+  enum: ['recebida', 'modelo', 'estrutura', 'prova', 'acabamento', 'pronta', 'enviada'],
+};
+
 const schemas = {
   Alerta: {
     type: 'object',
@@ -439,7 +448,7 @@ const schemas = {
     properties: {
       paciente: ref('Paciente'),
       proximas_consultas: { type: 'array', items: ref('ConsultaProxima') },
-      os_em_aberto: { type: 'array', items: { type: 'object', additionalProperties: true } },
+      os_em_aberto: { type: 'array', items: ref('OsResumoPaciente') },
     },
   },
   CampoRevelado: {
@@ -531,6 +540,640 @@ const schemas = {
     type: 'object',
     required: ['url', 'celular'],
     properties: { url: str, celular: { ...str, description: 'Mascarado' } },
+  },
+  OsPessoa: {
+    type: 'object',
+    required: ['nome'],
+    properties: { id: { ...uuid, nullable: true }, nome: str },
+  },
+  OrdemServico: {
+    type: 'object',
+    required: [
+      'id',
+      'numero',
+      'origem',
+      'status',
+      'tipo_trabalho',
+      'elementos',
+      'cliente',
+      'paciente',
+      'prazo',
+      'refacoes',
+      'provas',
+      'prova_aberta',
+      'criado_em',
+    ],
+    properties: {
+      id: uuid,
+      numero: str,
+      origem: { type: 'string', enum: ['propria', 'externa'] },
+      status: { type: 'string', enum: ['aberta', 'concluida', 'cancelada'] },
+      etapa: { ...etapaOs, nullable: true },
+      etapa_producao: { ...etapaProducao, nullable: true },
+      tipo_trabalho: str,
+      elementos: { type: 'array', items: { type: 'integer' } },
+      cor: strNull,
+      material: strNull,
+      laboratorio: { type: 'string', enum: ['proprio'], nullable: true },
+      previsao_entrega: { type: 'string', format: 'date', nullable: true },
+      enviado_em: { ...dt, nullable: true },
+      concluida_em: { ...dt, nullable: true },
+      cancelada_em: { ...dt, nullable: true },
+      motivo_cancelamento: strNull,
+      criado_em: dt,
+      cliente: {
+        type: 'object',
+        required: ['id', 'nome', 'tipo'],
+        properties: { id: uuid, nome: str, tipo: { type: 'string', enum: ['interno', 'externo'] } },
+      },
+      paciente: ref('OsPessoa'),
+      dentista: refNulo('OsPessoa'),
+      tecnico: {
+        type: 'object',
+        nullable: true,
+        required: ['id', 'nome'],
+        properties: { id: uuid, nome: str },
+      },
+      prazo: {
+        type: 'object',
+        required: ['situacao'],
+        properties: {
+          situacao: {
+            type: 'string',
+            enum: ['atrasada', 'a_vencer', 'no_prazo', 'sem_prazo', 'concluida', 'cancelada'],
+          },
+          dias: { type: 'integer', nullable: true },
+        },
+      },
+      refacoes: { type: 'integer' },
+      provas: { type: 'integer' },
+      prova_aberta: { type: 'boolean' },
+      valor: {
+        type: 'number',
+        nullable: true,
+        description: 'Só para a administração do laboratório',
+      },
+      observacoes: strNull,
+    },
+  },
+  OsProva: {
+    type: 'object',
+    required: ['id', 'numero', 'enviada_em'],
+    properties: {
+      id: uuid,
+      numero: { type: 'integer' },
+      enviada_em: dt,
+      devolvida_em: { ...dt, nullable: true },
+      resultado: { type: 'string', enum: ['aprovada', 'ajuste'], nullable: true },
+      motivo: strNull,
+      usuario_nome: strNull,
+    },
+  },
+  OsRefacao: {
+    type: 'object',
+    required: ['id', 'numero', 'motivo', 'data'],
+    properties: {
+      id: uuid,
+      numero: { type: 'integer' },
+      motivo: str,
+      data: dt,
+      usuario_nome: strNull,
+    },
+  },
+  OrdemServicoDetalhe: {
+    allOf: [
+      ref('OrdemServico'),
+      {
+        type: 'object',
+        required: ['historico_provas', 'historico_refacoes'],
+        properties: {
+          historico_provas: { type: 'array', items: ref('OsProva') },
+          historico_refacoes: { type: 'array', items: ref('OsRefacao') },
+        },
+      },
+    ],
+  },
+  OsHistorico: {
+    type: 'object',
+    required: ['lado', 'para_etapa', 'em'],
+    properties: {
+      lado: { type: 'string', enum: ['clinica', 'laboratorio', 'status'] },
+      de_etapa: strNull,
+      para_etapa: str,
+      observacao: strNull,
+      em: dt,
+      usuario_nome: strNull,
+    },
+  },
+  OsAnexo: {
+    type: 'object',
+    required: ['id', 'os_id', 'tipo', 'nome', 'mime', 'tamanho', 'criado_em'],
+    properties: {
+      id: uuid,
+      os_id: uuid,
+      tipo: str,
+      nome: str,
+      mime: str,
+      tamanho: { type: 'integer' },
+      criado_em: dt,
+      enviado_por: strNull,
+    },
+  },
+  OsEntrada: {
+    type: 'object',
+    required: ['tipo_trabalho'],
+    properties: {
+      tipo_trabalho: str,
+      elementos: { type: 'array', items: { type: 'integer' } },
+      cor: strNull,
+      material: strNull,
+      observacoes: strNull,
+      previsao_entrega: { type: 'string', format: 'date', nullable: true },
+      paciente_id: uuid,
+      profissional_id: { ...uuid, nullable: true },
+      laboratorio: { type: 'string', enum: ['proprio'], nullable: true },
+      cliente_id: uuid,
+      paciente_nome: str,
+      dentista_nome: strNull,
+    },
+  },
+  LabCliente: {
+    type: 'object',
+    required: ['id', 'tipo', 'razao_social', 'ativo', 'os_abertas', 'criado_em'],
+    properties: {
+      id: uuid,
+      tipo: { type: 'string', enum: ['interno', 'externo'] },
+      razao_social: str,
+      documento_tipo: { type: 'string', enum: ['cnpj', 'cpf'], nullable: true },
+      documento: { ...strNull, description: 'Mascarado' },
+      responsavel: strNull,
+      cro: strNull,
+      telefone: { ...strNull, description: 'Mascarado' },
+      email: strNull,
+      endereco: refNulo('Endereco'),
+      condicao_pagamento: strNull,
+      ativo: { type: 'boolean' },
+      criado_em: dt,
+      os_abertas: { type: 'integer' },
+    },
+  },
+  LabClienteEntrada: {
+    type: 'object',
+    properties: {
+      razao_social: str,
+      documento: strNull,
+      responsavel: strNull,
+      cro: strNull,
+      telefone: strNull,
+      email: strNull,
+      endereco: refNulo('Endereco'),
+      condicao_pagamento: strNull,
+      ativo: { type: 'boolean' },
+    },
+  },
+  LabCaderno: {
+    type: 'object',
+    required: ['cliente', 'indicadores', 'em_producao', 'entregues'],
+    properties: {
+      cliente: ref('LabCliente'),
+      indicadores: {
+        type: 'object',
+        required: ['os_abertas', 'entregues_mes', 'refacoes_mes'],
+        properties: {
+          os_abertas: { type: 'integer' },
+          entregues_mes: { type: 'integer' },
+          no_prazo_pct: { type: 'integer', nullable: true },
+          refacoes_mes: { type: 'integer' },
+        },
+      },
+      em_producao: { type: 'array', items: ref('OrdemServico') },
+      entregues: { type: 'array', items: ref('OrdemServico') },
+    },
+  },
+  Preco: {
+    type: 'object',
+    required: ['id', 'tipo_trabalho', 'valor', 'vigencia_inicio'],
+    properties: {
+      id: uuid,
+      tipo_trabalho: str,
+      cliente_id: { ...uuid, nullable: true },
+      cliente_nome: strNull,
+      valor: { type: 'number' },
+      vigencia_inicio: { type: 'string', format: 'date' },
+    },
+  },
+  OsResumoPaciente: {
+    type: 'object',
+    required: ['id', 'numero', 'tipo_trabalho', 'etapa'],
+    properties: {
+      id: uuid,
+      numero: str,
+      tipo_trabalho: str,
+      etapa: etapaOs,
+      previsao_entrega: { type: 'string', format: 'date', nullable: true },
+    },
+  },
+  Lote: {
+    type: 'object',
+    required: ['id', 'lote', 'saldo'],
+    properties: {
+      id: uuid,
+      lote: str,
+      validade: { type: 'string', format: 'date', nullable: true },
+      saldo: { type: 'number' },
+    },
+  },
+  Produto: {
+    type: 'object',
+    required: [
+      'id',
+      'nome',
+      'codigo',
+      'unidade_medida',
+      'estoque_minimo',
+      'ativo',
+      'saldo',
+      'situacao',
+      'lotes',
+    ],
+    properties: {
+      id: uuid,
+      nome: str,
+      codigo: str,
+      categoria: strNull,
+      unidade_medida: str,
+      estoque_minimo: { type: 'number' },
+      fornecedor: strNull,
+      ativo: { type: 'boolean' },
+      saldo: { type: 'number' },
+      situacao: { type: 'string', enum: ['abaixo_minimo', 'vencido', 'vencendo', 'normal'] },
+      proxima_validade: { type: 'string', format: 'date', nullable: true },
+      lotes: { type: 'array', items: ref('Lote') },
+      custo_medio: { type: 'number', description: 'Só para a administração' },
+      valor: { type: 'number', description: 'Só para a administração' },
+    },
+  },
+  ProdutoEntrada: {
+    type: 'object',
+    properties: {
+      nome: str,
+      codigo: str,
+      categoria: strNull,
+      unidade_medida: str,
+      estoque_minimo: { type: 'number' },
+      fornecedor: strNull,
+      ativo: { type: 'boolean' },
+    },
+  },
+  Movimentacao: {
+    type: 'object',
+    required: ['id', 'tipo', 'quantidade', 'saldo_apos', 'em', 'produto', 'lote'],
+    properties: {
+      id: uuid,
+      tipo: { type: 'string', enum: ['entrada', 'retirada', 'ajuste'] },
+      quantidade: { type: 'number' },
+      saldo_apos: { type: 'number' },
+      custo: { type: 'number', description: 'Só para a administração' },
+      motivo: {
+        type: 'string',
+        enum: ['producao', 'uso', 'perda', 'refacao', 'vencimento'],
+        nullable: true,
+      },
+      justificativa: strNull,
+      fornecedor: strNull,
+      nota_fiscal: strNull,
+      em: dt,
+      produto: {
+        type: 'object',
+        required: ['id', 'nome', 'unidade_medida'],
+        properties: { id: uuid, nome: str, unidade_medida: str },
+      },
+      lote: str,
+      usuario_nome: strNull,
+      os: {
+        type: 'object',
+        nullable: true,
+        required: ['id', 'numero'],
+        properties: { id: uuid, numero: str },
+      },
+    },
+  },
+  EstoqueResumo: {
+    type: 'object',
+    required: ['abaixo_minimo', 'lotes_vencendo', 'retiradas_hoje', 'retiradas_hoje_os'],
+    properties: {
+      abaixo_minimo: { type: 'integer' },
+      lotes_vencendo: { type: 'integer' },
+      retiradas_hoje: { type: 'integer' },
+      retiradas_hoje_os: { type: 'integer' },
+      valor_estoque: { type: 'number' },
+      consumo_mes: { type: 'number' },
+      os_no_mes: { type: 'integer' },
+    },
+  },
+  CustoPorOs: {
+    type: 'object',
+    properties: {
+      ranking: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'numero', 'tipo_trabalho', 'total', 'retiradas'],
+          properties: {
+            id: uuid,
+            numero: str,
+            tipo_trabalho: str,
+            total: { type: 'number' },
+            retiradas: { type: 'integer' },
+          },
+        },
+      },
+      os_id: uuid,
+      total: { type: 'number' },
+      itens: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['em', 'produto_nome', 'unidade_medida', 'quantidade', 'custo', 'total'],
+          properties: {
+            em: dt,
+            produto_nome: str,
+            unidade_medida: str,
+            quantidade: { type: 'number' },
+            custo: { type: 'number' },
+            total: { type: 'number' },
+            motivo: strNull,
+            usuario_nome: strNull,
+          },
+        },
+      },
+    },
+  },
+  FormaPagamento: {
+    type: 'string',
+    enum: ['pix', 'dinheiro', 'credito', 'debito', 'boleto', 'transferencia'],
+  },
+  CategoriaFinanceira: {
+    type: 'object',
+    required: ['id', 'tipo', 'nome'],
+    properties: {
+      id: uuid,
+      tipo: { type: 'string', enum: ['receita', 'despesa'] },
+      nome: str,
+      chave: strNull,
+    },
+  },
+  Lancamento: {
+    type: 'object',
+    required: [
+      'id',
+      'tipo',
+      'descricao',
+      'valor',
+      'valor_pago',
+      'saldo',
+      'vencimento',
+      'situacao',
+      'atrasado',
+      'categoria',
+      'criado_em',
+    ],
+    properties: {
+      id: uuid,
+      tipo: { type: 'string', enum: ['receita', 'despesa'] },
+      descricao: str,
+      valor: { type: 'number' },
+      valor_pago: { type: 'number' },
+      saldo: { type: 'number' },
+      vencimento: { type: 'string', format: 'date' },
+      pagamento: { type: 'string', format: 'date', nullable: true },
+      forma: { allOf: [ref('FormaPagamento')], nullable: true },
+      situacao: { type: 'string', enum: ['aberto', 'parcial', 'pago', 'cancelado'] },
+      atrasado: { type: 'boolean' },
+      parcela: { type: 'integer', nullable: true },
+      parcelas: { type: 'integer', nullable: true },
+      recorrencia: { type: 'string', enum: ['mensal'], nullable: true },
+      motivo_cancelamento: strNull,
+      criado_em: dt,
+      categoria: {
+        type: 'object',
+        required: ['id', 'nome'],
+        properties: { id: uuid, nome: str },
+      },
+      paciente: {
+        type: 'object',
+        nullable: true,
+        required: ['id', 'nome'],
+        properties: { id: uuid, nome: str },
+      },
+      cliente: {
+        type: 'object',
+        nullable: true,
+        required: ['id', 'nome'],
+        properties: { id: uuid, nome: str },
+      },
+      os: {
+        type: 'object',
+        nullable: true,
+        required: ['id', 'numero'],
+        properties: { id: uuid, numero: str },
+      },
+      baixas: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'valor', 'data', 'forma'],
+          properties: {
+            id: uuid,
+            valor: { type: 'number' },
+            data: { type: 'string', format: 'date' },
+            forma: ref('FormaPagamento'),
+            usuario_nome: strNull,
+          },
+        },
+      },
+    },
+  },
+  LancamentoEntrada: {
+    type: 'object',
+    properties: {
+      tipo: { type: 'string', enum: ['receita', 'despesa'] },
+      categoria_id: uuid,
+      descricao: str,
+      valor: { type: 'number' },
+      vencimento: { type: 'string', format: 'date' },
+      forma: { allOf: [ref('FormaPagamento')], nullable: true },
+      paciente_id: { ...uuid, nullable: true },
+      cliente_id: { ...uuid, nullable: true },
+      parcelas: { type: 'integer' },
+      recorrencia: { type: 'string', enum: ['mensal'], nullable: true },
+      repeticoes: { type: 'integer' },
+      baixa: {
+        type: 'object',
+        required: ['forma'],
+        properties: { forma: ref('FormaPagamento'), data: { type: 'string', format: 'date' } },
+      },
+    },
+  },
+  ValoresFluxo: {
+    type: 'object',
+    required: ['realizado', 'em_aberto', 'previsto'],
+    properties: {
+      realizado: { type: 'number' },
+      em_aberto: { type: 'number' },
+      previsto: { type: 'number' },
+    },
+  },
+  FluxoCaixa: {
+    type: 'object',
+    required: ['inicio', 'fim', 'receitas', 'despesas', 'saldo', 'semanas'],
+    properties: {
+      inicio: { type: 'string', format: 'date' },
+      fim: { type: 'string', format: 'date' },
+      receitas: ref('ValoresFluxo'),
+      despesas: ref('ValoresFluxo'),
+      saldo: {
+        type: 'object',
+        required: ['realizado', 'previsto'],
+        properties: { realizado: { type: 'number' }, previsto: { type: 'number' } },
+      },
+      semanas: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['inicio', 'fim', 'receitas', 'despesas', 'a_receber', 'a_pagar'],
+          properties: {
+            inicio: { type: 'string', format: 'date' },
+            fim: { type: 'string', format: 'date' },
+            receitas: { type: 'number' },
+            despesas: { type: 'number' },
+            a_receber: { type: 'number' },
+            a_pagar: { type: 'number' },
+          },
+        },
+      },
+    },
+  },
+  ContasEmAberto: {
+    type: 'object',
+    required: ['total', 'atrasado', 'itens'],
+    properties: {
+      total: { type: 'number' },
+      atrasado: { type: 'number' },
+      itens: { type: 'array', items: ref('Lancamento') },
+      por_cliente: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'nome', 'tipo', 'faturado', 'recebido', 'a_receber'],
+          properties: {
+            id: uuid,
+            nome: str,
+            tipo: { type: 'string', enum: ['interno', 'externo'] },
+            faturado: { type: 'number' },
+            recebido: { type: 'number' },
+            a_receber: { type: 'number' },
+            vencimento: { type: 'string', format: 'date', nullable: true },
+          },
+        },
+      },
+    },
+  },
+  TotaisCaixa: {
+    type: 'object',
+    required: ['por_forma', 'entradas', 'saidas', 'saldo', 'movimentos'],
+    properties: {
+      por_forma: { type: 'object', additionalProperties: { type: 'number' } },
+      entradas: { type: 'number' },
+      saidas: { type: 'number' },
+      saldo: { type: 'number' },
+      movimentos: { type: 'integer' },
+    },
+  },
+  Caixa: {
+    type: 'object',
+    required: ['data', 'situacao', 'totais'],
+    properties: {
+      id: { ...uuid, nullable: true },
+      data: { type: 'string', format: 'date' },
+      situacao: { type: 'string', enum: ['aberto', 'fechado'] },
+      totais: ref('TotaisCaixa'),
+      fechado_em: { ...dt, nullable: true },
+      fechado_por: strNull,
+      reaberto_em: { ...dt, nullable: true },
+      reaberto_por: strNull,
+      justificativa: strNull,
+    },
+  },
+  Extrato: {
+    type: 'object',
+    required: [
+      'cliente',
+      'inicio',
+      'fim',
+      'os_concluidas',
+      'total',
+      'itens',
+      'resumo',
+      'pagamento',
+    ],
+    properties: {
+      cliente: {
+        type: 'object',
+        required: ['id', 'tipo', 'razao_social'],
+        properties: {
+          id: uuid,
+          tipo: { type: 'string', enum: ['interno', 'externo'] },
+          razao_social: str,
+          documento_tipo: strNull,
+          documento: strNull,
+          responsavel: strNull,
+          cro: strNull,
+          endereco: refNulo('Endereco'),
+        },
+      },
+      inicio: { type: 'string', format: 'date' },
+      fim: { type: 'string', format: 'date' },
+      os_concluidas: { type: 'integer' },
+      total: { type: 'number' },
+      itens: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['id', 'numero', 'tipo_trabalho', 'elementos', 'data', 'paciente'],
+          properties: {
+            id: uuid,
+            numero: str,
+            tipo_trabalho: str,
+            elementos: { type: 'array', items: { type: 'integer' } },
+            valor: { type: 'number', nullable: true },
+            data: { type: 'string', format: 'date' },
+            paciente: str,
+          },
+        },
+      },
+      resumo: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['tipo_trabalho', 'quantidade', 'total'],
+          properties: {
+            tipo_trabalho: str,
+            quantidade: { type: 'integer' },
+            total: { type: 'number' },
+          },
+        },
+      },
+      pagamento: {
+        type: 'object',
+        required: ['recebido', 'a_receber'],
+        properties: {
+          recebido: { type: 'number' },
+          a_receber: { type: 'number' },
+          vencimento: { type: 'string', format: 'date', nullable: true },
+        },
+      },
+    },
   },
 };
 
@@ -693,7 +1336,7 @@ const operacoes = {
       properties: {
         status: {
           type: 'string',
-          enum: ['confirmada', 'chegou', 'em_atendimento', 'concluida', 'faltou'],
+          enum: ['confirmada', 'chegou', 'concluida', 'faltou'],
         },
       },
     }),
@@ -853,6 +1496,266 @@ const operacoes = {
   'get /pacientes/{id}/anexos': { responses: ok({ type: 'array', items: ref('Anexo') }) },
   'post /pacientes/{id}/anexos': { responses: ok(ref('Anexo'), '201') },
   'get /anexos/{id}': { responses: ok({ allOf: [ref('Anexo'), ref('LinkDownload')] }) },
+
+  'get /ordens-servico': { responses: ok({ type: 'array', items: ref('OrdemServico') }) },
+  'post /ordens-servico': {
+    requestBody: corpo(ref('OsEntrada')),
+    responses: ok(ref('OrdemServico'), '201'),
+  },
+  'get /ordens-servico/atrasadas': {
+    responses: ok({
+      type: 'object',
+      required: ['atrasadas', 'a_vencer'],
+      properties: {
+        atrasadas: { type: 'array', items: ref('OrdemServico') },
+        a_vencer: { type: 'array', items: ref('OrdemServico') },
+      },
+    }),
+  },
+  'get /ordens-servico/tecnicos': {
+    responses: ok({
+      type: 'array',
+      items: { type: 'object', required: ['id', 'nome'], properties: { id: uuid, nome: str } },
+    }),
+  },
+  'get /ordens-servico/tipos-trabalho': { responses: ok({ type: 'array', items: str }) },
+  'get /ordens-servico/{id}': { responses: ok(ref('OrdemServicoDetalhe')) },
+  'patch /ordens-servico/{id}': {
+    requestBody: corpo(ref('OsEntrada')),
+    responses: ok(ref('OrdemServico')),
+  },
+  'patch /ordens-servico/{id}/etapa': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['etapa'],
+      properties: {
+        etapa: {
+          type: 'string',
+          enum: [...etapaProducao.enum, 'entregue'],
+        },
+        observacao: str,
+      },
+    }),
+    responses: ok(ref('OrdemServico')),
+  },
+  'post /ordens-servico/{id}/cancelar': { responses: ok(ref('OrdemServico')) },
+  'get /ordens-servico/{id}/historico': {
+    responses: ok({ type: 'array', items: ref('OsHistorico') }),
+  },
+  'post /ordens-servico/{id}/tecnico': { responses: ok(ref('OrdemServico')) },
+  'post /ordens-servico/{id}/provas': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['resultado'],
+      properties: {
+        resultado: { type: 'string', enum: ['aprovada', 'ajuste'] },
+        motivo: str,
+        etapa: etapaProducao,
+      },
+    }),
+    responses: ok({
+      type: 'object',
+      required: ['os', 'provas'],
+      properties: { os: ref('OrdemServico'), provas: { type: 'array', items: ref('OsProva') } },
+    }),
+  },
+  'post /ordens-servico/{id}/refacoes': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['motivo'],
+      properties: { motivo: str, etapa: etapaProducao },
+    }),
+    responses: ok({
+      type: 'object',
+      required: ['os', 'refacoes'],
+      properties: {
+        os: ref('OrdemServico'),
+        refacoes: { type: 'array', items: ref('OsRefacao') },
+      },
+    }),
+  },
+  'get /ordens-servico/{id}/anexos': { responses: ok({ type: 'array', items: ref('OsAnexo') }) },
+  'post /ordens-servico/{id}/anexos': { responses: ok(ref('OsAnexo'), '201') },
+  'get /ordens-servico/{id}/anexos/{anexoId}': {
+    responses: ok({ allOf: [ref('OsAnexo'), ref('LinkDownload')] }),
+  },
+  'get /laboratorio/clientes': { responses: ok({ type: 'array', items: ref('LabCliente') }) },
+  'post /laboratorio/clientes': {
+    requestBody: corpo(ref('LabClienteEntrada')),
+    responses: ok(ref('LabCliente'), '201'),
+  },
+  'get /laboratorio/clientes/{id}': { responses: ok(ref('LabCaderno')) },
+  'patch /laboratorio/clientes/{id}': {
+    requestBody: corpo(ref('LabClienteEntrada')),
+    responses: ok(ref('LabCliente')),
+  },
+  'get /laboratorio/clientes/{id}/revelar/{campo}': { responses: ok(ref('CampoRevelado')) },
+  'get /laboratorio/tabela-precos': { responses: ok({ type: 'array', items: ref('Preco') }) },
+  'put /laboratorio/tabela-precos': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['itens'],
+      properties: {
+        itens: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['tipo_trabalho', 'valor'],
+            properties: {
+              tipo_trabalho: str,
+              cliente_id: { ...uuid, nullable: true },
+              valor: { type: 'number' },
+              vigencia_inicio: { type: 'string', format: 'date' },
+            },
+          },
+        },
+      },
+    }),
+    responses: ok({ type: 'array', items: ref('Preco') }),
+  },
+  'get /estoque/produtos': { responses: ok({ type: 'array', items: ref('Produto') }) },
+  'post /estoque/produtos': {
+    requestBody: corpo(ref('ProdutoEntrada')),
+    responses: ok(ref('Produto'), '201'),
+  },
+  'patch /estoque/produtos/{id}': {
+    requestBody: corpo(ref('ProdutoEntrada')),
+    responses: ok(ref('Produto')),
+  },
+  'post /estoque/entradas': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['produto_id', 'quantidade', 'custo_unitario'],
+      properties: {
+        produto_id: uuid,
+        quantidade: { type: 'number' },
+        lote: strNull,
+        validade: { type: 'string', format: 'date', nullable: true },
+        custo_unitario: { type: 'number' },
+        fornecedor: strNull,
+        nota_fiscal: strNull,
+        lancar_financeiro: { type: 'boolean' },
+      },
+    }),
+    responses: ok(ref('Produto'), '201'),
+  },
+  'post /estoque/retiradas': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['produto_id', 'quantidade', 'motivo'],
+      properties: {
+        produto_id: uuid,
+        lote_id: { ...uuid, nullable: true },
+        quantidade: { type: 'number' },
+        os_id: { ...uuid, nullable: true },
+        motivo: { type: 'string', enum: ['producao', 'uso', 'perda', 'refacao', 'vencimento'] },
+        observacao: strNull,
+      },
+    }),
+    responses: ok(ref('Produto'), '201'),
+  },
+  'post /estoque/ajustes': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['produto_id', 'lote_id', 'saldo_contado', 'justificativa'],
+      properties: {
+        produto_id: uuid,
+        lote_id: uuid,
+        saldo_contado: { type: 'number' },
+        justificativa: str,
+      },
+    }),
+    responses: ok(ref('Produto'), '201'),
+  },
+  'get /estoque/movimentacoes': {
+    responses: ok({ type: 'array', items: ref('Movimentacao') }),
+  },
+  'get /estoque/alertas': {
+    responses: ok({
+      type: 'object',
+      required: ['abaixo_minimo', 'vencendo'],
+      properties: {
+        abaixo_minimo: { type: 'array', items: ref('Produto') },
+        vencendo: { type: 'array', items: ref('Produto') },
+      },
+    }),
+  },
+  'get /estoque/resumo': { responses: ok(ref('EstoqueResumo')) },
+  'get /estoque/custo-por-os': { responses: ok(ref('CustoPorOs')) },
+  'get /financeiro/categorias': {
+    responses: ok({ type: 'array', items: ref('CategoriaFinanceira') }),
+  },
+  'post /financeiro/categorias': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['tipo', 'nome'],
+      properties: { tipo: { type: 'string', enum: ['receita', 'despesa'] }, nome: str },
+    }),
+    responses: ok(ref('CategoriaFinanceira'), '201'),
+  },
+  'get /financeiro/fluxo-caixa': { responses: ok(ref('FluxoCaixa')) },
+  'get /financeiro/lancamentos': { responses: ok({ type: 'array', items: ref('Lancamento') }) },
+  'post /financeiro/lancamentos': {
+    requestBody: corpo(ref('LancamentoEntrada')),
+    responses: ok({ type: 'array', items: ref('Lancamento') }, '201'),
+  },
+  'get /financeiro/lancamentos/{id}': { responses: ok(ref('Lancamento')) },
+  'patch /financeiro/lancamentos/{id}': {
+    requestBody: corpo(ref('LancamentoEntrada')),
+    responses: ok(ref('Lancamento')),
+  },
+  'post /financeiro/lancamentos/{id}/baixa': {
+    requestBody: corpo({
+      type: 'object',
+      required: ['forma'],
+      properties: {
+        valor: { type: 'number' },
+        forma: ref('FormaPagamento'),
+        data: { type: 'string', format: 'date' },
+      },
+    }),
+    responses: ok(ref('Lancamento')),
+  },
+  'post /financeiro/lancamentos/{id}/cancelar': { responses: ok(ref('Lancamento')) },
+  'get /financeiro/contas-receber': { responses: ok(ref('ContasEmAberto')) },
+  'get /financeiro/contas-pagar': { responses: ok(ref('ContasEmAberto')) },
+  'get /financeiro/caixa/hoje': { responses: ok(ref('Caixa')) },
+  'get /financeiro/caixa/fechamentos': {
+    responses: ok({
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['id', 'data', 'totais', 'situacao', 'fechado_em'],
+        properties: {
+          id: uuid,
+          data: { type: 'string', format: 'date' },
+          totais: ref('TotaisCaixa'),
+          situacao: { type: 'string', enum: ['aberto', 'fechado'] },
+          fechado_em: dt,
+          fechado_por: strNull,
+          reaberto_em: { ...dt, nullable: true },
+          reaberto_por: strNull,
+          justificativa: strNull,
+        },
+      },
+    }),
+  },
+  'post /financeiro/caixa/fechar': {
+    requestBody: {
+      content: json({
+        type: 'object',
+        properties: { data: { type: 'string', format: 'date' } },
+      }),
+    },
+    responses: ok(ref('Caixa')),
+  },
+  'post /financeiro/caixa/{id}/reabrir': { responses: ok(ref('Caixa')) },
+  'get /financeiro/extratos/{clienteId}': { responses: ok(ref('Extrato')) },
+  'post /financeiro/extratos/{clienteId}/pdf': {
+    requestBody: { content: json({ type: 'object', properties: { mes: str } }) },
+    responses: ok(ref('LinkDownload')),
+  },
+  'post /financeiro/recibos/{lancamentoId}': { responses: ok(ref('LinkDownload')) },
 };
 
 /** Aplica o contrato sobre o spec gerado pelas anotações @swagger. */

@@ -47,7 +47,7 @@ export function EvolucoesTab({ pacienteId }: { pacienteId: string }) {
 
   return (
     <div className="stack">
-      <section className="card">
+      <section className="card pad">
         <h2 style={{ marginBottom: 10 }}>Nova evolução</h2>
         <label className="sr-only" htmlFor="nova-evolucao">
           Texto da evolução

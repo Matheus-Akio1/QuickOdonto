@@ -198,7 +198,7 @@ router.patch('/:id', ESCREVER, async (req, res, next) => {
  * @swagger
  * /consultas/{id}/status:
  *   patch:
- *     summary: Move no quadro (agendada → confirmada → chegou → em_atendimento → concluida; faltou) e grava histórico
+ *     summary: Move no quadro e grava histórico. Secretaria — confirmada, chegou, faltou. Dentista da consulta — concluida
  *     tags: [Agenda]
  *     security: [{ cookieAuth: [] }]
  *     parameters:
@@ -211,10 +211,11 @@ router.patch('/:id', ESCREVER, async (req, res, next) => {
  *             type: object
  *             required: [status]
  *             properties:
- *               status: { type: string, enum: [confirmada, chegou, em_atendimento, concluida, faltou] }
+ *               status: { type: string, enum: [confirmada, chegou, concluida, faltou] }
  *     responses:
  *       200: { description: Consulta atualizada }
  *       400: { description: Status inválido (cancelamento usa /cancelar) }
+ *       403: { description: Perfil não pode fazer esta mudança (concluir é só do dentista da consulta) }
  *       409: { description: Transição não permitida }
  * /consultas/{id}/cancelar:
  *   post:
@@ -248,24 +249,20 @@ router.patch('/:id', ESCREVER, async (req, res, next) => {
  *       400: { description: Paciente sem celular }
  *       409: { description: Consulta não está a realizar }
  */
-router.patch('/:id/status', ESCREVER, async (req, res, next) => {
+router.patch('/:id/status', LER, async (req, res, next) => {
   try {
     if (!idOk(req, res)) return undefined;
     const dados = validar(
       z
         .object({
-          status: z.enum(['confirmada', 'chegou', 'em_atendimento', 'concluida', 'faltou']),
+          status: z.enum(['confirmada', 'chegou', 'concluida', 'faltou']),
         })
         .strict(),
       req.body,
       res,
     );
     if (!dados) return undefined;
-    const { antes, depois } = await service.mudarStatus(
-      req.params.id,
-      dados.status,
-      req.usuario.id,
-    );
+    const { antes, depois } = await service.mudarStatus(req.params.id, dados.status, req.usuario);
     res.locals.auditoria = auditoriaConsulta('status', antes, depois);
     return res.json(depois);
   } catch (err) {

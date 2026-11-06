@@ -1,4 +1,5 @@
 const { query } = require('../../config/db');
+const financeiro = require('../financeiro/financeiro.service');
 const { cifrar, decifrar } = require('../../lib/crypto');
 const { erro, comTransacao, buscarPaciente } = require('./prontuario.service');
 
@@ -368,6 +369,13 @@ async function aprovarPlano(id, usuarioId) {
     await c.query(
       "UPDATE planos_tratamento SET status='aprovado', aprovado_em=now(), aprovado_por=$2, atualizado_em=now() WHERE id=$1",
       [id, usuarioId],
+    );
+    // Orçamento aprovado vira conta a receber da clínica (M6).
+    const pac = await c.query('SELECT nome FROM pacientes WHERE id = $1', [antes.paciente_id]);
+    await financeiro.gerarDoPlano(
+      c,
+      { id, total: antes.total, paciente_id: antes.paciente_id, paciente_nome: pac.rows[0].nome },
+      usuarioId,
     );
   });
   return { antes, depois: await buscarPlano(id) };

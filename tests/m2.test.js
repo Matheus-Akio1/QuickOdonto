@@ -564,39 +564,38 @@ describe('consultas — status, histórico e reagendamento', () => {
     ).body;
   });
 
-  test('transições válidas gravam histórico com usuário; inválidas 409; cancelamento só por /cancelar', async () => {
-    expect(
-      (await sec.patch(`/consultas/${c.id}/status`).send({ status: 'em_atendimento' })).status,
-    ).toBe(409);
-    expect(
-      (await sec.patch(`/consultas/${c.id}/status`).send({ status: 'cancelada' })).status,
-    ).toBe(400);
-    expect(
-      (await sec.patch(`/consultas/${c.id}/status`).send({ status: 'confirmada' })).status,
-    ).toBe(200);
-    expect((await sec.patch(`/consultas/${c.id}/status`).send({ status: 'chegou' })).status).toBe(
-      200,
-    );
-    expect(
-      (await sec.patch(`/consultas/${c.id}/status`).send({ status: 'em_atendimento' })).status,
-    ).toBe(200);
-    expect(
-      (await sec.patch(`/consultas/${c.id}/status`).send({ status: 'concluida' })).status,
-    ).toBe(200);
-    expect((await sec.patch(`/consultas/${c.id}/status`).send({ status: 'faltou' })).status).toBe(
-      409,
-    );
+  test('Secretaria confirma e registra a chegada; só o dentista da consulta conclui; histórico com usuário', async () => {
+    const dent1 = await entrar('dent1');
+    const dent2 = await entrar('dent2');
+    const mudar = (quem, status) => quem.patch(`/consultas/${c.id}/status`).send({ status });
+
+    // "Em atendimento" saiu do fluxo e cancelamento tem rota própria.
+    expect((await mudar(sec, 'em_atendimento')).status).toBe(400);
+    expect((await mudar(sec, 'cancelada')).status).toBe(400);
+    // Dentista não confirma nem registra chegada.
+    expect((await mudar(dent2, 'confirmada')).status).toBe(403);
+    expect((await mudar(sec, 'confirmada')).status).toBe(200);
+    // Não se conclui antes da chegada.
+    expect((await mudar(dent2, 'concluida')).status).toBe(409);
+    expect((await mudar(sec, 'chegou')).status).toBe(200);
+
+    // Bloqueado: Secretaria, dentista de outra agenda e dentista sem cadastro de profissional.
+    expect((await mudar(sec, 'concluida')).status).toBe(403);
+    expect((await mudar(dent1, 'concluida')).status).toBe(403);
+    expect((await mudar(clin, 'concluida')).status).toBe(403);
+    expect((await mudar(admc, 'concluida')).status).toBe(403);
+    // Permitido: o dentista da consulta.
+    expect((await mudar(dent2, 'concluida')).status).toBe(200);
+    expect((await mudar(sec, 'faltou')).status).toBe(409);
 
     const det = await sec.get(`/consultas/${c.id}`);
     expect(det.body.status).toBe('concluida');
-    expect(det.body.historico.map((h) => h.para_status)).toEqual([
-      'agendada',
-      'confirmada',
-      'chegou',
-      'em_atendimento',
-      'concluida',
+    expect(det.body.historico.map((h) => [h.para_status, h.usuario_nome])).toEqual([
+      ['agendada', 'sec'],
+      ['confirmada', 'sec'],
+      ['chegou', 'sec'],
+      ['concluida', 'dent2'],
     ]);
-    expect(det.body.historico.every((h) => h.usuario_nome === 'sec')).toBe(true);
     // status_desde = momento em que entrou no status atual (quadro do dia: "aguardando há…")
     expect(det.body.status_desde).toBe(det.body.historico.at(-1).em);
   });

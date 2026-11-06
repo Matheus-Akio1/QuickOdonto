@@ -20,7 +20,6 @@ import { ErroCarga } from '../../components/Feedback';
 import {
   IconeCheck,
   IconeMais,
-  IconeRaio,
   IconeReagendar,
   IconeRelogio,
   IconeSetaDireita,
@@ -33,31 +32,27 @@ import { useToast } from '../../toast/useToast';
 import { BarraAgenda } from './BarraAgenda';
 import { ConsultaDrawer } from './ConsultaDrawer';
 import { NovaConsultaModal } from './NovaConsultaModal';
-import { PROXIMO } from './fluxo';
+import { CONCLUI_NO_PRONTUARIO, PROXIMO } from './fluxo';
 import { useMudarStatus } from './useMudarStatus';
 
-type StatusMovel = Exclude<StatusConsulta, 'agendada' | 'cancelada'>;
-type Coluna = 'agendada' | 'confirmada' | 'chegou' | 'em_atendimento' | 'encerradas';
+/** O que a Secretaria faz no quadro: confirmar e registrar a chegada. Concluir é do dentista. */
+type StatusMovel = 'confirmada' | 'chegou';
+type Coluna = 'agendada' | 'confirmada' | 'chegou' | 'encerradas';
 
 const COLUNAS: { id: Coluna; titulo: string; ponto: string }[] = [
   { id: 'agendada', titulo: 'Agendada', ponto: '#7A8683' },
   { id: 'confirmada', titulo: 'Confirmada', ponto: '#2F6FD0' },
   { id: 'chegou', titulo: 'Chegou', ponto: '#DE6B2F' },
-  { id: 'em_atendimento', titulo: 'Em atendimento', ponto: '#2F6FD0' },
   { id: 'encerradas', titulo: 'Encerradas', ponto: '#067647' },
 ];
 /** O que acontece ao soltar um cartão em cada coluna. */
 const ALVO: Partial<Record<Coluna, StatusMovel>> = {
   confirmada: 'confirmada',
   chegou: 'chegou',
-  em_atendimento: 'em_atendimento',
-  encerradas: 'concluida',
 };
 const DICA: Partial<Record<Coluna, string>> = {
   confirmada: 'Solte aqui para confirmar',
   chegou: 'Solte aqui para marcar chegada',
-  em_atendimento: 'Solte aqui para chamar para a cadeira',
-  encerradas: 'Solte aqui para finalizar',
 };
 const ENCERRADAS: { status: StatusConsulta; titulo: string; ponto: string }[] = [
   { status: 'concluida', titulo: 'Finalizada', ponto: '#067647' },
@@ -65,7 +60,11 @@ const ENCERRADAS: { status: StatusConsulta; titulo: string; ponto: string }[] = 
   { status: 'cancelada', titulo: 'Cancelada', ponto: '#7A8683' },
 ];
 const colunaDe = (s: StatusConsulta): Coluna =>
-  s === 'concluida' || s === 'faltou' || s === 'cancelada' ? 'encerradas' : s;
+  s === 'concluida' || s === 'faltou' || s === 'cancelada'
+    ? 'encerradas'
+    : s === 'em_atendimento' // status antigo: fica junto de quem já chegou
+      ? 'chegou'
+      : s;
 
 export function QuadroPage() {
   const { usuario } = useAuth();
@@ -115,7 +114,12 @@ export function QuadroPage() {
     if (!col || !c || col === colunaDe(c.status)) return;
     const alvo = ALVO[col];
     if (!alvo) {
-      avisar('Uma consulta não volta para “Agendada”.', 'erro');
+      avisar(
+        col === 'encerradas'
+          ? 'Quem conclui o atendimento é o dentista, no prontuário.'
+          : 'Uma consulta não volta para “Agendada”.',
+        'erro',
+      );
       return;
     }
     mudar.mutate({ id: c.id, status: alvo });
@@ -381,16 +385,10 @@ function Cartao({
         {c.procedimento_previsto ?? 'Consulta'}
       </span>
 
-      {c.status === 'chegou' && c.status_desde && (
+      {CONCLUI_NO_PRONTUARIO.includes(c.status) && c.status_desde && (
         <span className="badge b-warn" style={{ alignSelf: 'flex-start' }}>
           <IconeRelogio tamanho={13} />
           Aguardando há {fmtDecorrido(c.status_desde)}
-        </span>
-      )}
-      {c.status === 'em_atendimento' && c.status_desde && (
-        <span className="badge b-info" style={{ alignSelf: 'flex-start' }}>
-          <span className="pulse" />
-          Na cadeira · {fmtDecorrido(c.status_desde)}
         </span>
       )}
       {c.status === 'cancelada' && c.motivo_cancelamento && (
@@ -422,26 +420,9 @@ function Cartao({
               Marcar chegada
             </button>
           )}
-          {c.status === 'chegou' && (
-            <button
-              type="button"
-              className="btn xs pri"
-              style={{ width: '100%' }}
-              onClick={() => onMudar?.(c.id, 'em_atendimento')}
-            >
-              <IconeRaio tamanho={14} />
-              Chamar para a cadeira
-            </button>
-          )}
-          {c.status === 'em_atendimento' && (
-            <button type="button" className="btn xs" onClick={() => onMudar?.(c.id, 'concluida')}>
-              <IconeCheck tamanho={14} />
-              Finalizar
-            </button>
-          )}
         </div>
       )}
-      {verProntuario && !flutuante && c.status === 'em_atendimento' && (
+      {verProntuario && !flutuante && CONCLUI_NO_PRONTUARIO.includes(c.status) && (
         <Link
           to={`/clinica/prontuario/${c.paciente.id}`}
           className="link-acao"

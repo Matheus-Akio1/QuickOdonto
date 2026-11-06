@@ -9,6 +9,8 @@ const prontuario = require('./prontuario.service');
 const service = require('./anexos.service');
 const { gerarPdfProntuario } = require('./pdf');
 const { query } = require('../../config/db');
+const { registrar } = require('../../middleware/auditoria');
+const financeiroPdf = require('../financeiro/pdf');
 
 const TIPOS = ['radiografia', 'foto', 'documento', 'escaneamento', 'outro'];
 
@@ -128,6 +130,8 @@ anexos.get('/:id', async (req, res, next) => {
   try {
     if (!uuidOu404(req.params.id, res, 'Anexo não encontrado.')) return undefined;
     const { caminho: _caminho, ...meta } = await service.buscar(req.params.id);
+    // Anexo de OS não pertence ao prontuário: sai pela rota da própria OS.
+    if (!meta.paciente_id) return res.status(404).json({ erro: 'Anexo não encontrado.' });
     await acesso(req, meta.paciente_id, 'anexo_link');
     const link = await links.emitir({
       tipo: 'anexo',
@@ -165,6 +169,26 @@ arquivos.get('/:token', async (req, res, next) => {
     let mime;
     let nome;
     let pacienteId;
+    if (link.tipo === 'recibo_pdf' || link.tipo === 'extrato_pdf') {
+      // Documentos do financeiro: gerados na hora, para o usuário que pediu, e auditados.
+      const doc = await financeiroPdf.conteudoDoLink(link);
+      if (!doc) return res.status(404).json({ erro: 'Link inválido, expirado ou já utilizado.' });
+      await registrar({
+        usuario: doc.usuario,
+        entidade: 'financeiro',
+        entidadeId: link.referencia_id,
+        acao: `download_${link.tipo}`,
+        ip: req.ip,
+      });
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Length': doc.dados.length,
+        'Content-Disposition': `attachment; filename="${doc.nome}"`,
+        'Cache-Control': 'no-store, private',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      return res.send(doc.dados);
+    }
     if (link.tipo === 'anexo') {
       const r = await service.conteudo(link.referencia_id);
       ({ dados } = r);
@@ -176,12 +200,24 @@ arquivos.get('/:token', async (req, res, next) => {
       mime = 'application/pdf';
       nome = 'prontuario.pdf';
     }
-    await prontuario.registrarAcesso({
-      pacienteId,
-      usuarioId: link.usuario_id,
-      recurso: link.tipo === 'anexo' ? 'anexo_download' : 'pdf',
-      ip: req.ip,
-    });
+    if (pacienteId) {
+      await prontuario.registrarAcesso({
+        pacienteId,
+        usuarioId: link.usuario_id,
+        recurso: link.tipo === 'anexo' ? 'anexo_download' : 'pdf',
+        ip: req.ip,
+      });
+    } else {
+      // Anexo de ordem de serviço: não é prontuário, mas o download fica na auditoria.
+      const u = await query('SELECT id, unidade FROM usuarios WHERE id = $1', [link.usuario_id]);
+      await registrar({
+        usuario: u.rows[0],
+        entidade: 'anexos',
+        entidadeId: link.referencia_id,
+        acao: 'download_os',
+        ip: req.ip,
+      });
+    }
 
     res.set({
       'Content-Type': mime,

@@ -193,6 +193,7 @@ async function temHistorico(id) {
          OR EXISTS (SELECT 1 FROM procedimentos_paciente WHERE paciente_id = $1)
          OR EXISTS (SELECT 1 FROM planos_tratamento WHERE paciente_id = $1)
          OR EXISTS (SELECT 1 FROM anexos WHERE paciente_id = $1)
+         OR EXISTS (SELECT 1 FROM ordens_servico WHERE paciente_id = $1)
          OR EXISTS (SELECT 1 FROM acessos_prontuario WHERE paciente_id = $1) AS tem`,
     [id],
   );
@@ -229,8 +230,12 @@ async function resumo(id) {
       ORDER BY c.inicio LIMIT 5`,
     [id],
   );
-  // OS em aberto entram no M3 (ordens de serviço).
-  return { paciente: serializar(p), proximas_consultas: rows, os_em_aberto: [] };
+  const os = await query(
+    `SELECT id, numero, tipo_trabalho, etapa, previsao_entrega::text AS previsao_entrega
+       FROM ordens_servico WHERE paciente_id = $1 AND status = 'aberta' ORDER BY criado_em`,
+    [id],
+  );
+  return { paciente: serializar(p), proximas_consultas: rows, os_em_aberto: os.rows };
 }
 
 async function fichaCompleta(id) {

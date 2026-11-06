@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 
-const CONSULTA = '(max-width: 767px)';
-
-/** true abaixo de 768px — o mesmo corte em que o menu lateral vira barra inferior. */
-export function useCelular(): boolean {
-  const [celular, setCelular] = useState(() => window.matchMedia(CONSULTA).matches);
+/** true enquanto a consulta de mídia casar (ex.: '(max-width: 767px)'). */
+export function useMedia(consulta: string): boolean {
+  const [casa, setCasa] = useState(() => window.matchMedia(consulta).matches);
   useEffect(() => {
-    const mq = window.matchMedia(CONSULTA);
-    const ouvir = () => setCelular(mq.matches);
+    const mq = window.matchMedia(consulta);
+    const ouvir = () => setCasa(mq.matches);
+    ouvir();
     mq.addEventListener('change', ouvir);
     return () => mq.removeEventListener('change', ouvir);
-  }, []);
-  return celular;
+  }, [consulta]);
+  return casa;
 }
+
+/** true abaixo de 768px — o mesmo corte em que o menu lateral vira barra inferior. */
+export const useCelular = (): boolean => useMedia('(max-width: 767px)');

@@ -5,12 +5,20 @@ import { api, chamar, mensagemDeErro } from '../../api/client';
 import type { Alerta } from '../../api/types';
 import { Abas } from '../../components/Abas';
 import { Carregando, ErroCarga } from '../../components/Feedback';
-import { IconeAlerta, IconeBaixar, IconeMais, IconeSetaDireita } from '../../components/Icones';
+import {
+  IconeAlerta,
+  IconeBaixar,
+  IconeMais,
+  IconePrancheta,
+  IconeSetaDireita,
+} from '../../components/Icones';
 import { BuscaCabecalho, Cabecalho } from '../../layout/Cabecalho';
 import { useToast } from '../../toast/useToast';
+import { NovaOsModal } from '../os/NovaOsModal';
 import { AcessosTab } from './AcessosTab';
 import { AnexosTab } from './AnexosTab';
 import { CartaoPaciente } from './CartaoPaciente';
+import { ConcluirAtendimento } from './ConcluirAtendimento';
 import { EvolucoesTab } from './EvolucoesTab';
 import { OdontogramaTab } from './OdontogramaTab';
 import { PlanosTab } from './PlanosTab';
@@ -31,6 +39,7 @@ export function ProntuarioPage() {
   const [aba, setAba] = useState('resumo');
   const [dente, setDente] = useState<number | null>(null);
   const [busca, setBusca] = useState('');
+  const [gerarOs, setGerarOs] = useState(false);
   const resumo = useResumo(id);
 
   // PDF gerado no servidor; o front só recebe um link de uso único e navega até ele (download).
@@ -152,6 +161,11 @@ export function ProntuarioPage() {
             <IconeBaixar />
             PDF
           </button>
+          <button type="button" className="btn" onClick={() => setGerarOs(true)}>
+            <IconePrancheta />
+            Gerar OS
+          </button>
+          <ConcluirAtendimento pacienteId={id} nome={paciente.nome} />
           <button type="button" className="btn pri" onClick={() => setAba('evolucoes')}>
             <IconeMais />
             Nova evolução
@@ -183,6 +197,9 @@ export function ProntuarioPage() {
         {aba === 'anexos' && <AnexosTab pacienteId={id} />}
         {aba === 'acessos' && <AcessosTab pacienteId={id} />}
       </div>
+      {gerarOs && (
+        <NovaOsModal origem="propria" pacienteId={id} onFechar={() => setGerarOs(false)} />
+      )}
     </>
   );
 }

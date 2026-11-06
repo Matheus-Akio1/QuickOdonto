@@ -549,7 +549,33 @@ table.table {
     min-height: 72px;
   }
   .top .h1 {
-    font-size: 26px;
+    font-size: 24px;
+  }
+  /* No celular: título e botões na primeira linha; a busca ocupa a linha de baixo inteira. */
+  .top {
+    gap: 8px;
+  }
+  .top > div:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .top > .btn,
+  .top > .ibtn,
+  .top > .pop-wrap {
+    flex-shrink: 0;
+  }
+  /* Ações secundárias do cabeçalho (exportar etc.) ficam só no computador. */
+  .top > .btn:not(.pri) {
+    display: none;
+  }
+  .top > .search,
+  .top > form {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100% !important;
+  }
+  .top > form > .search {
+    width: 100% !important;
   }
   .content {
     padding: 6px 16px 20px;
@@ -598,6 +624,20 @@ table.table {
     font-size: 12px;
     text-align: left;
     flex: none;
+  }
+  /* A primeira célula é o título do cartão (nome + e-mail, código…): sem rótulo, alinhada à esquerda. */
+  .table.empilha td:first-child {
+    display: block;
+    text-align: left;
+    padding-bottom: 6px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .table.empilha td:first-child::before {
+    content: none;
+  }
+  .table.empilha td:first-child .muted {
+    font-weight: 500;
   }
   .table.empilha td.acoes {
     justify-content: flex-start;
@@ -788,4 +828,64 @@ table.table {
   background: var(--peach);
   box-shadow: 0 0 0 4px rgba(242, 184, 128, 0.22);
   margin-left: auto;
+}
+
+/* ---------- Peças das telas administrativas e clínicas (varredura de layout) ---------- */
+.card.pad {
+  padding: 18px 20px;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.toolbar .grow {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+.toolbar .input,
+.toolbar .select {
+  width: 100%;
+}
+.toolbar > .btn {
+  margin-left: auto;
+}
+.faces-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+/* Títulos escritos sem classe dentro das telas seguem a tipografia do sistema visual. */
+.content h2:not([class]),
+.dialog-body h2:not([class]),
+.drawer-body h2:not([class]) {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.content h3:not([class]),
+.dialog-body h3:not([class]),
+.drawer-body h3:not([class]) {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* Abas como botões: mesma aparência da prancha, com o sublinhado da aba ativa. */
+.tabs button.tab {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  font-family: inherit;
+  cursor: pointer;
+}
+.tabs button.tab.on {
+  border-bottom-color: var(--primary);
 }

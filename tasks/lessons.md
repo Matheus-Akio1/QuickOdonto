@@ -45,3 +45,17 @@
 - **Regra — fonte da verdade:** o canvas vigente é "QuickOdonto — telas melhoradas" (confirmado pelo usuário em 11/10/2026). O checklist descreve O QUE existe; o protótipo define COMO aparece. Se os dois divergirem, apontar ao usuário em vez de escolher sozinho.
 - **Regra — só leitura:** não publicar nem alterar nada nos canvases do protótipo sem pedido explícito.
 
+
+## 11. CHECK com coluna nula passa em silêncio
+- **O que houve (M5):** `CHECK (tipo <> 'ajuste' OR length(trim(justificativa)) >= 5)` aceitava justificativa nula — comparação com NULL dá NULL, e CHECK só recusa FALSE. O teste que insere direto no banco pegou.
+- **Regra:** em CHECK de obrigatoriedade, escrever `coluna IS NOT NULL AND ...` explicitamente; e toda regra "garantida no banco" precisa de um teste que tente violá-la por SQL direto, inclusive com NULL.
+
+## 12. "Hoje" no teste tem de ser o mesmo "hoje" do serviço
+- **O que houve (M5):** um teste do M3 usava `CURRENT_DATE` (UTC) para retroagir um prazo, enquanto o serviço calcula atraso na data de Brasília. Passou de dia e falhou só depois das 21h.
+- **Regra:** em teste, seed e SQL de apoio, usar `(now() AT TIME ZONE 'America/Sao_Paulo')::date` (ou o helper `diasAFrente`), nunca `CURRENT_DATE`. Ao mexer com data, pensar no que acontece entre 21h e meia-noite.
+
+## 13. Tela só está pronta depois de vista em notebook e em celular — e sem classe órfã
+- **O que houve:** validei as telas só em 1440 px (a largura das pranchas). Em 1280 px o estoque, o plano de tratamento e as listas do laboratório se sobrepunham; no celular o cabeçalho e a agenda semanal quebravam. Além disso, ao trocar o CSS pelo do protótipo, quatro classes antigas (`page`, `page-head`, `toolbar`, `faces-check`) ficaram sem estilo e Anamnese, Procedimentos e Usuários perderam cabeçalho e margens. O usuário precisou pedir uma varredura.
+- **Regra:** toda tela nova ou alterada é conferida no navegador em **1280×800, 1440×900 e 375×812** antes de marcar `[x]`. Grade com colunas fixas precisa de `minmax()` com mínimo real na coluna de texto e de um ponto de quebra onde o painel lateral desce ou vira gaveta.
+- **Regra:** depois de mexer em CSS compartilhado, rodar a checagem de classes usadas sem estilo (script da varredura de 12/10/2026: extrai `className` dos `.tsx` e compara com `src/styles/*.css`) — a lista tem de voltar vazia.
+- **Regra:** cartão com conteúdo direto usa `card pad`; página usa `<Cabecalho>` + `<div className="content">` (não existe mais contêiner `page`).

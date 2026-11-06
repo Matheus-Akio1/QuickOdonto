@@ -12,10 +12,12 @@ import { useAuth } from '../auth/useAuth';
 import { Avatar } from '../components/Avatar';
 import {
   IconeAgenda,
+  IconeCaixa,
   IconeCoracao,
   IconeDente,
   IconeEscudo,
-  IconeFrasco,
+  IconeFinanceiro,
+  IconePrancheta,
   IconePacientes,
   IconePasta,
   IconeQuadro,
@@ -32,8 +34,14 @@ const ICONES: Record<ItemMenu['icone'], (p: { tamanho?: number }) => React.JSX.E
   anamnese: IconeCoracao,
   procedimentos: IconeDente,
   usuarios: IconeEscudo,
-  laboratorio: IconeFrasco,
+  os: IconePrancheta,
+  clientes: IconePacientes,
+  estoque: IconeCaixa,
+  financeiro: IconeFinanceiro,
 };
+
+/** Rotas que têm sub-rotas com item próprio no menu: só ficam ativas na rota exata. */
+const ROTAS_EXATAS = ['/agenda', '/admin/clinica', '/admin/lab'];
 
 /** Estrutura do protótipo: menu lateral petróleo (painel, menu, usuário) + área principal. */
 export function AppShell() {
@@ -66,8 +74,26 @@ export function AppShell() {
     queryFn: () => chamar(api.GET('/profissionais')),
   });
 
+  // OS fora do prazo: selo no item "Ordens de serviço" (secretaria e laboratório).
+  const atrasadas = useQuery({
+    queryKey: ['os', 'atrasadas'],
+    enabled: perfil === 'secretaria' || perfil === 'laboratorio',
+    refetchInterval: 120_000,
+    queryFn: () => chamar(api.GET('/ordens-servico/atrasadas')),
+  });
+
+  // Itens abaixo do mínimo: selo no item "Estoque" (laboratório e administrações).
+  const estoque = useQuery({
+    queryKey: ['estoque', 'resumo'],
+    enabled: perfil === 'laboratorio' || perfil === 'adm_clinica' || perfil === 'adm_laboratorio',
+    refetchInterval: 120_000,
+    queryFn: () => chamar(api.GET('/estoque/resumo')),
+  });
+
   if (!usuario) return null;
   const itens = menuDoPerfil(usuario.perfil);
+  const abaixoMinimo = estoque.data?.abaixo_minimo ?? 0;
+  const osAtrasadas = atrasadas.data?.atrasadas.length ?? 0;
   const aguardando = perfil === 'secretaria' ? (espera.data?.length ?? 0) : 0;
   const meu = profs.data?.find((p) => p.usuario_id === usuario.id);
   const naEspera =
@@ -113,7 +139,7 @@ export function AppShell() {
               <NavLink
                 key={item.rota}
                 to={item.rota}
-                end={item.rota === '/agenda'}
+                end={ROTAS_EXATAS.includes(item.rota)}
                 className={({ isActive }) => `nav ${isActive ? 'on' : ''}`}
               >
                 <Icone tamanho={20} />
@@ -121,6 +147,16 @@ export function AppShell() {
                 {item.rota === '/agenda/quadro' && aguardando > 0 && (
                   <span className="pill" aria-label={`${aguardando} aguardando`}>
                     {aguardando}
+                  </span>
+                )}
+                {item.icone === 'estoque' && abaixoMinimo > 0 && (
+                  <span className="pill" aria-label={`${abaixoMinimo} abaixo do mínimo`}>
+                    {abaixoMinimo}
+                  </span>
+                )}
+                {item.icone === 'os' && osAtrasadas > 0 && (
+                  <span className="pill" aria-label={`${osAtrasadas} atrasadas`}>
+                    {osAtrasadas}
                   </span>
                 )}
               </NavLink>
@@ -170,11 +206,11 @@ export function AppShell() {
         {itens.map((item) => {
           const Icone = ICONES[item.icone];
           return (
-            <NavLink key={item.rota} to={item.rota} end={item.rota === '/agenda'}>
+            <NavLink key={item.rota} to={item.rota} end={ROTAS_EXATAS.includes(item.rota)}>
               <span className="ic">
                 <Icone tamanho={22} />
               </span>
-              {item.rotulo}
+              {item.icone === 'os' ? (perfil === 'laboratorio' ? 'Produção' : 'OS') : item.rotulo}
             </NavLink>
           );
         })}

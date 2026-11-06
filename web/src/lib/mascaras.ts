@@ -16,6 +16,19 @@ export function mascaraCelular(v: string): string {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
+export function mascaraCnpj(v: string): string {
+  const d = soDigitos(v).slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+/** CNPJ ou CPF conforme a quantidade de dígitos (até 11 = CPF). */
+export const mascaraDocumento = (v: string): string =>
+  soDigitos(v).length <= 11 ? mascaraCpf(v) : mascaraCnpj(v);
+
 export function mascaraCep(v: string): string {
   const d = soDigitos(v).slice(0, 8);
   return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;

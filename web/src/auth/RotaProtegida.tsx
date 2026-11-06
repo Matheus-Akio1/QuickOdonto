@@ -11,7 +11,7 @@ export function RotaProtegida({ perfis }: { perfis?: Perfil[] }) {
 
   if (carregando) {
     return (
-      <div className="page">
+      <div className="content" style={{ paddingTop: 28 }}>
         <Carregando />
       </div>
     );

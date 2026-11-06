@@ -2,7 +2,7 @@ const { query } = require('../../config/db');
 const arquivo = require('../../lib/arquivoCifrado');
 const { erro, buscarPaciente } = require('./prontuario.service');
 
-const COLUNAS = `a.id, a.paciente_id, a.tipo, a.nome, a.mime, a.tamanho, a.criado_em, u.nome AS enviado_por`;
+const COLUNAS = `a.id, a.paciente_id, a.os_id, a.tipo, a.nome, a.mime, a.tamanho, a.criado_em, u.nome AS enviado_por`;
 
 async function listar(pacienteId) {
   await buscarPaciente(pacienteId);

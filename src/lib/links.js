@@ -5,12 +5,12 @@ const { query } = require('../config/db');
 const VALIDADE_SEGUNDOS = 60;
 const sha256 = (v) => crypto.createHash('sha256').update(v).digest('hex');
 
-async function emitir({ tipo, referenciaId, usuarioId }) {
+async function emitir({ tipo, referenciaId, usuarioId, parametro = null }) {
   const token = crypto.randomBytes(32).toString('base64url');
   const { rows } = await query(
-    `INSERT INTO links_download (token_hash, tipo, referencia_id, usuario_id, expira_em)
-     VALUES ($1,$2,$3,$4, now() + ($5 || ' seconds')::interval) RETURNING expira_em`,
-    [sha256(token), tipo, referenciaId, usuarioId, String(VALIDADE_SEGUNDOS)],
+    `INSERT INTO links_download (token_hash, tipo, referencia_id, usuario_id, parametro, expira_em)
+     VALUES ($1,$2,$3,$4,$5, now() + ($6 || ' seconds')::interval) RETURNING expira_em`,
+    [sha256(token), tipo, referenciaId, usuarioId, parametro, String(VALIDADE_SEGUNDOS)],
   );
   return { url: `/api/v1/arquivos/${token}`, expira_em: rows[0].expira_em };
 }
@@ -21,7 +21,7 @@ async function consumir(token) {
   const { rows } = await query(
     `UPDATE links_download SET usado_em = now(), atualizado_em = now()
       WHERE token_hash = $1 AND usado_em IS NULL AND expira_em > now()
-      RETURNING tipo, referencia_id, usuario_id`,
+      RETURNING tipo, referencia_id, usuario_id, parametro`,
     [sha256(token)],
   );
   return rows[0] ?? null;
